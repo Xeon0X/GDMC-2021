@@ -1,5 +1,6 @@
 {
     "editor.fontSize": 20,
     "editor.fontFamily": "Cascadia Code, Cascadia Code, Cascadia Code",
-    "editor.fontLigatures": "Cascadia Code"
+    "editor.fontLigatures": "Cascadia Code",
+    "python.pythonPath": "C:\\Users\\maelc\\anaconda3\\python.exe"
 }
