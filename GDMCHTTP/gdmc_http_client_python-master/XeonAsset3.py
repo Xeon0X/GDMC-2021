@@ -1,7 +1,8 @@
 """
 Roads generator for Minecraft 1.16.3 using GDMCHTTP. 
 Made for the Generative Design in Minecraft Competition
-Author: Xeon0X
+Author: Xeon0X & Rexos
+Made in France
 Date: 12/22/2020
 """
 
