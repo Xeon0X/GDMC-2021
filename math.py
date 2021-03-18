@@ -1,4 +1,4 @@
-from math import *
+import math
 
 
 def mathLine(pos1, pos2, pixelPerfect=True):
@@ -12,7 +12,7 @@ def mathLine(pos1, pos2, pixelPerfect=True):
 
     Returns:
         [type]: [description]
-    
+
     https://www.geeksforgeeks.org/bresenhams-algorithm-for-3-d-line-drawing/
     """
     (x1, y1, z1) = pos1
