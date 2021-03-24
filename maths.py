@@ -1,22 +1,26 @@
-import math
+from math import sqrt
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import interpolate
 
 
-def mathLine(pos1, pos2, pixelPerfect=True):
+def line(xyz1, xyz2, pixelPerfect=True):
     """
-    Calculate a line between two points in 3d space.
-
-    Args:
-        pos1 ([type]): [description]
-        pos2 ([type]): [description]
-        pixelPerfect (bool, optional): [description]. Defaults to True.
-
-    Returns:
-        [type]: [description]
+    Calculate a line between two points in 3D space.
 
     https://www.geeksforgeeks.org/bresenhams-algorithm-for-3-d-line-drawing/
+
+    Args:
+        xyz1 (tuple): First coordinates.
+        xyz2 (tuple): Second coordinates.
+        pixelPerfect (bool, optional): Blocks will be placed diagonally,
+        not side by side if pixelPerfect is True. Defaults to True.
+
+    Returns:
+        list: List of blocks.
     """
-    (x1, y1, z1) = pos1
-    (x2, y2, z2) = pos2
+    (x1, y1, z1) = xyz1
+    (x2, y2, z2) = xyz2
     x1, y1, z1, x2, y2, z2 = (
         round(x1),
         round(y1),
@@ -112,39 +116,69 @@ def mathLine(pos1, pos2, pixelPerfect=True):
     return ListOfPoints
 
 
-def offset(N, pos1, pos2):
+def offset(distance, xy1, xy2):
     """
-    return A, perpendicular from [pos1;pos2] at N from pos1
-    return B, perpendicular from [pos1;pos2] at -N from pos1
-    return C, perpendicular from [pos2;pos1] at N from pos2
-    return D, perpendicular from [pos2;pos1] at -N from pos2
+    Compute the coordinates of perpendicular points from two points. 2D
+    only.
+
+    Args:
+        distance (int): Distance from the line[xy1;xy2] of the
+        perpendicular points.
+        xy1 (tuple): First position.
+        xy2 (tuple): Second position.
+
+    Returns:
+        tuple: The coordinates of perpendicular points.
+        A: Perpendicular from [xy1;xy2] at distance from pos1.
+        B: perpendicular from [xy1;xy2] at -distance from pos1.
+        C: perpendicular from [xy2;xy1] at distance from pos2.
+        D: perpendicular from [xy2;xy1] at -distance from pos2.
     """
-    A, B = mathPerpendicular(N * 2, pos1, pos2)
-    C, D = mathPerpendicular(N * 2, pos2, pos1)
+    A, B = perpendicular(distance * 2, xy1, xy2)
+    C, D = perpendicular(distance * 2, xy2, xy1)
     return ([A, D], [B, C])
 
 
-def mathPerpendicular(N, pos1, pos2):
+def perpendicular(distance, xy1, xy2):
     """
-    2D Only
+    Return a tuple of the perpendicular coordinates.
+
+    Args:
+        distance (int): Distance from the line[xy1;xy2].
+        xy1 (tuple): First coordinates.
+        xy2 (tuple): Second coordinates.
+
+    Returns:
+        tuple: Coordinates of the line length distance, perpendicular
+        to [xy1; xy2] at xy1.
     """
-    (x1, y1) = pos1
-    (x2, y2) = pos2
+    (x1, y1) = xy1
+    (x2, y2) = xy2
     dx = x1 - x2
     dy = y1 - y2
     dist = sqrt(dx * dx + dy * dy)
     dx /= dist
     dy /= dist
-    x3 = x1 + (N / 2) * dy
-    y3 = y1 - (N / 2) * dx
-    x4 = x1 - (N / 2) * dy
-    y4 = y1 + (N / 2) * dx
+    x3 = x1 + (distance / 2) * dy
+    y3 = y1 - (distance / 2) * dx
+    x4 = x1 - (distance / 2) * dy
+    y4 = y1 + (distance / 2) * dx
     return ((round(x3), round(y3)), (round(x4), round(y4)))
 
 
-def smoothCurve(points, num_true_pts=40):
+def smoothCurve(points, number_true_pts=40, debug=False):
     """
+    returns a 2d curve that is used to interpolate the curve
+
     https://stackoverflow.com/questions/18962175/spline-interpolation-coefficients-of-a-line-curve-in-3d-space
+
+    Args:
+        points (np.array): Points where the curves should pass.
+        number_true_pts (int, optional): Number of points to compute. Defaults to 40.
+        debug (bool, optional): Just for a visual graphic. Defaults to False.
+
+    Returns:
+        tuple: tuple of list of each coordinate.
     """
 
     x_sample = []
@@ -162,17 +196,17 @@ def smoothCurve(points, num_true_pts=40):
 
     tck, u = interpolate.splprep([x_sample, y_sample, z_sample], s=2, k=2)
     x_knots, y_knots, z_knots = interpolate.splev(tck[0], tck)
-    u_fine = np.linspace(0, 1, num_true_pts)
+    u_fine = np.linspace(0, 1, number_true_pts)
     x_fine, y_fine, z_fine = interpolate.splev(u_fine, tck)
 
-    # Visual Only
-    # fig2 = plt.figure(2)
-    # ax3d = fig2.add_subplot(111, projection='3d')
-    # ax3d.plot(x_sample, y_sample, z_sample, 'r*')
-    # ax3d.plot(x_knots, y_knots, z_knots, 'go')
-    # ax3d.plot(x_fine, y_fine, z_fine, 'r')
-    # fig2.show()
-    # plt.show()
+    if debug:
+        fig2 = plt.figure(2)
+        ax3d = fig2.add_subplot(111, projection="3d")
+        ax3d.plot(x_sample, y_sample, z_sample, "r*")
+        ax3d.plot(x_knots, y_knots, z_knots, "go")
+        ax3d.plot(x_fine, y_fine, z_fine, "r")
+        fig2.show()
+        plt.show()
 
     x = x_fine.tolist()
     z = y_fine.tolist()
@@ -185,29 +219,10 @@ def smoothCurve(points, num_true_pts=40):
     for i in z:
         i = round(i)
 
-    # # Ingame Demo
-    # for i in range(len(x)-1):
-    #     setLine('blue_concrete', (x[i], y[i], z[i]), (x[i+1], y[i+1], z[i+1]))
-    #     '''
-    #     paralelle = offset (2, (x[i], z[i]), (x[i+1], z[i+1]))
-    #     setLine('blue_concrete', (paralelle[0][0][0], y[i], paralelle[0][0][1]), (paralelle[0][1][0], y[i+1], paralelle[0][1][1]))
-    #     setLine('red_concrete', (paralelle[1][0][0], y[i], paralelle[1][0][1]), (paralelle[1][1][0], y[i+1], paralelle[1][1][1]))
-    #     '''
-    # ###
-
-    # for i in range(len(x)):
-    #     setBlock('red_concrete', (x[i], y[i]+1, z[i]))
-
-    # line0, line1 = smoothCurveOffset(x,y,z, N=10)
-    # for i in range(len(line0)-1):
-    #     setLineRandom('blue_concrete', 'blue_concrete', line0[i], line0[i+1], False)
-    # for i in range(len(line1)-1):
-    #     setLineRandom('blue_concrete', 'blue_concrete', line1[i], line1[i+1], False)
-    # ###
-    return (x, y, z)
+    return x, y, z
 
 
-def TESTsmoothRoads(points):
+def TESTsmoothRoads(points):  # TODO: delete but save cool parts before.
     """
     Preset road
     """
@@ -293,9 +308,10 @@ def TESTsmoothRoads(points):
     #         ### ICI on en était au pillier
 
 
-def smoothRoads(points):
+def smoothRoads(points):  # HERE
+    # TODO: Work in progress. Transform into smoothCurveSurface. Specific roads inside main?
 
-    # Calculating resolution depending of the distance
+    # Calculating resolution depending of the distance.
     distance = 0
     for i in range(len(points) - 1):
         distance += sqrt(
@@ -305,21 +321,21 @@ def smoothRoads(points):
         )
     num_true_pts = round(distance / 10)
 
-    # Calculation of the main line
+    # Calculation of the main line.
     lineCenter0 = []
     x, y, z = smoothCurve(points, num_true_pts)
     for i in range(len(x) - 1):
         pos0 = x[i], y[i], z[i]
         pos1 = (x[i + 1], y[i + 1], z[i + 1])
-        lineCenter0.extend(mathLine(pos0, pos1))
+        lineCenter0.extend(line(pos0, pos1))
 
-    # LineCenter = noDuplicates
+    # LineCenter = noDuplicates.
     lineCenter = []
     for i in lineCenter0:
         if i not in lineCenter:
             lineCenter.append(i)
 
-    # Offsetting
+    # Offsetting.
     listCenter = []
     for i in range(0, len(lineCenter), 7):
         listCenter.append(lineCenter[i])
@@ -342,16 +358,15 @@ def smoothRoads(points):
     road1 = []
     road0 = []
 
-    # "Parcing"
-    for i in range(
-        len(line0[0]) - 1
-    ):  # line0[0][0],line0[1][0],line0[2][0]... line0[0][1],line0[1][1],line0[2][1]
+    # Parsing.
+    for i in range(len(line0[0]) - 1):
+        # line0[0][0],line0[1][0],line0[2][0]... line0[0][1],line0[1][1],line0[2][1]
         for j in range(len(line0)):
             roadA.append(
-                mathLine(line0[j][i], line0[j][i + 1], pixelPerfect=False)
+                line(line0[j][i], line0[j][i + 1], pixelPerfect=False)
             )
             roadB.append(
-                mathLine(line1[j][i], line1[j][i + 1], pixelPerfect=False)
+                line(line1[j][i], line1[j][i + 1], pixelPerfect=False)
             )
         road0.append(roadA)
         road1.append(roadB)
@@ -402,11 +417,23 @@ def smoothRoads(points):
     # vérifier distance ground pour chaque pair qui encadre la parcelle. Si une des deux est == void alors ne rien mettre, si les 2 == fill alors fill
 
 
-def smoothCurveOffset(
-    x, y, z, N=5
-):  # On peut améliorer la précision en trouvant l'arc intérieur et extérieur : relier les points de l'arc et non calculer leur milieu.
+def smoothCurveOffset(x, y, z, distance=5):
     """
-    take 3D coordinates
+    Offset a curve.
+
+    Args:
+        x (list): List of x coordinates.
+        y (list): List of y coordinates.
+        z (list): List of z coordinates.
+        distance (int, optional): Distance of offsetting. Defaults to 5.
+
+    Returns:
+        tuple: lists of points from the upper curve and the lower curve.
+
+    TODO:
+        The accuracy can be improved by finding the inner and outer arc
+        outer arc: connect the points of the arc and not calculate their
+        middle.
     """
     lineA = []
     lineB = []
@@ -415,17 +442,17 @@ def smoothCurveOffset(
 
     # Offsetting
     for i in range(len(x) - 1):
-        paralelle = offset(N, (x[i], z[i]), (x[i + 1], z[i + 1]))
+        paralell = offset(distance, (x[i], z[i]), (x[i + 1], z[i + 1]))
         lineA.append(
             (
-                (paralelle[0][0][0], y[i], paralelle[0][0][1]),
-                (paralelle[0][1][0], y[i + 1], paralelle[0][1][1]),
+                (paralell[0][0][0], y[i], paralell[0][0][1]),
+                (paralell[0][1][0], y[i + 1], paralell[0][1][1]),
             )
         )
         lineB.append(
             (
-                (paralelle[1][0][0], y[i], paralelle[1][0][1]),
-                (paralelle[1][1][0], y[i + 1], paralelle[1][1][1]),
+                (paralell[1][0][0], y[i], paralell[1][0][1]),
+                (paralell[1][1][0], y[i + 1], paralell[1][1][1]),
             )
         )
 
@@ -470,14 +497,23 @@ def smoothCurveOffset(
         )
     )
 
-    return (line0, line1)
+    return line0, line1
 
 
-def pixelPerfect(path):  # Revoir pour 3D
+def pixelPerfect(path):
     """
-    Transform a list of coordinates by deleting blocks
-    """
+    Remove blocks that are side by side in the path. Keep the blocks
+    that are in diagonal.
 
+    Args:
+        path (list): List of coordinates from a path.
+
+    Returns:
+        list: List cleaned.
+
+    TODO:
+        Add 3D.
+    """
     # NotPixelPerfect detection
     if len(path) == 1 or len(path) == 0:
         return path
@@ -527,22 +563,24 @@ def pixelPerfect(path):  # Revoir pour 3D
     return path
 
 
-def cleanLine(path):  # WORK BUT NOT ENDS : revoir pour 3D
+def cleanLine(path):
     """
-    clean and smooth a list of blocks coordinates:
-    """
+    Clean and smooth a list of blocks.
 
+    Args:
+        path (list): List of blocks.
+
+    Returns:
+        list: List cleaned.
+
+    TODO:
+        Add 3D.
+        Add new patterns.
+    """
     i = 0
     while i < len(path):
 
-        # for j in range(i-10,i):
-        #     if i % 2 == 0:
-        #         setBlock('green_stained_glass', (path[j][0], 112, path[j][1]))
-        #     else:
-        #         setBlock('blue_stained_glass', (path[j][0], 112, path[j][1]))
-        # print("C")
         # 2 blocks, 90 degrees, 2 blocks = 1 block, 1 block, 1 block
-
         if i + 3 < len(path):
             if (
                 path[i][0] == path[i + 1][0]
@@ -552,7 +590,6 @@ def cleanLine(path):  # WORK BUT NOT ENDS : revoir pour 3D
                 del path[i + 2]  # 2nd block
                 del path[i + 2]  # 3rd block
                 i -= 10
-                print("A")
                 continue
             elif (
                 path[i][1] == path[i + 1][1]
@@ -562,12 +599,10 @@ def cleanLine(path):  # WORK BUT NOT ENDS : revoir pour 3D
                 del path[i + 2]  # 2nd block
                 del path[i + 2]  # 3rd block
                 i -= 10
-                print("B")
                 continue
 
         # 1 block, 3 blocks, 1 block = 1 block, 2 blocks, 2 blocks
         if i - 1 >= 0 and i + 5 <= len(path):
-            print("1")
             if (
                 (
                     path[i + 1][1] == path[i + 2][1]
@@ -585,7 +620,6 @@ def cleanLine(path):  # WORK BUT NOT ENDS : revoir pour 3D
                 path.insert((i + 1), (path[i + 1][0], path[i][1]))
                 del path[i + 2]  # 2nd block
                 i -= 10
-                print("2")
                 continue
             elif (
                 (
@@ -604,7 +638,6 @@ def cleanLine(path):  # WORK BUT NOT ENDS : revoir pour 3D
                 path.insert((i + 1), (path[i][0], path[i + 1][1]))
                 del path[i + 2]  # 2nd block
                 i -= 10
-                print("3")
                 continue
 
         i += 1
