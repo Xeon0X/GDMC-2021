@@ -1,5 +1,6 @@
 import minecraft
 import maths
+import numpy as np
 
 USE_BATCHING = False
 
@@ -28,4 +29,7 @@ def setLine(block, pos1, pos2, pixelPerfect=True):
         setBlock(block, (i[0], i[1], i[2]))
 
 
-setLine("cobblestone", (324, 3, 54), (321, 4, 34))
+points = np.array([[272, 71, -210],[266, 100, -235],[296, 87, -267],[328, 76, -283]])
+print(maths.smoothCurveSurface(points))
+
+setLine("cobblestone", (272, 71, -210), (266, 100, -235))
