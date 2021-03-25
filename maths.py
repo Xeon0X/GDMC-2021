@@ -308,7 +308,8 @@ def TESTsmoothRoads(points):  # TODO: delete but save cool parts before.
     #         ### ICI on en était au pillier
 
 
-def smoothRoads(points):  # HERE
+def smoothCurveSurface(points):  # HERE
+    print("test réussi")
     # TODO: Work in progress. Transform into smoothCurveSurface. Specific roads inside main?
 
     # Calculating resolution depending of the distance.
@@ -319,11 +320,11 @@ def smoothRoads(points):  # HERE
             + ((points[i][1] - points[i + 1][1]) ** 2)
             + ((points[i][2] - points[i + 1][2]) ** 2)
         )
-    num_true_pts = round(distance / 10)
+    number_true_pts = round(distance / 10)
 
     # Calculation of the main line.
     lineCenter0 = []
-    x, y, z = smoothCurve(points, num_true_pts)
+    x, y, z = smoothCurve(points, number_true_pts)
     for i in range(len(x) - 1):
         pos0 = x[i], y[i], z[i]
         pos1 = (x[i + 1], y[i + 1], z[i + 1])
@@ -382,12 +383,12 @@ def smoothRoads(points):  # HERE
         eee.append(groundDistance)
 
         if 0 <= groundDistance <= 7:  # remplir jusqu'au sol
-            setBlock(
+            minecraft.setBlock(
                 "red_concrete",
                 (listCenter[i][0], listCenter[i][1] + 3, listCenter[i][2]),
             )
         if 7 < groundDistance:  # générer pillier
-            setBlock(
+            main.setBlock(
                 "blue_concrete",
                 (listCenter[i][0], listCenter[i][1] + 3, listCenter[i][2]),
             )
@@ -398,9 +399,9 @@ def smoothRoads(points):  # HERE
 
         for j in range(len(road1[i])):  # pour toutes les lignes
             for k in range(len(road1[i][j])):  # pour tous les blocks
-                setBlock("white_concrete", road1[i][j][k])
+                main.setBlock("white_concrete", road1[i][j][k])
                 if 0 <= groundDistance <= 7:  # remplir jusqu'au sol
-                    fillBlock(
+                    main.fillBlock(
                         "black_concrete",
                         (
                             road1[i][j][k][0],
