@@ -643,3 +643,7 @@ def cleanLine(path):
 
         i += 1
     return path
+
+
+def distance2D(A, B):
+    return sqrt((B[0] - A[0]) ** 2 + (B[1] - A[1]) ** 2)

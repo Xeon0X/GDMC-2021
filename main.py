@@ -2,7 +2,7 @@ import minecraft
 import maths
 import numpy as np
 
-USE_BATCHING = False
+USE_BATCHING = True
 
 
 def setBlock(block, pos):
@@ -29,7 +29,7 @@ def setLine(block, pos1, pos2, pixelPerfect=True):
         setBlock(block, (i[0], i[1], i[2]))
 
 
-points = np.array([[272, 71, -210],[266, 100, -235],[296, 87, -267],[328, 76, -283]])
-print(maths.smoothCurveSurface(points))
+# points = np.array([[272, 71, -210],[266, 100, -235],[296, 87, -267],[328, 76, -283]])
+# print(maths.smoothCurveSurface(points))
 
-setLine("cobblestone", (272, 71, -210), (266, 100, -235))
+# setLine("cobblestone", (272, 71, -210), (266, 100, -235))
