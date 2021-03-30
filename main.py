@@ -15,7 +15,7 @@ def setBlock(block, pos):
 
 def getBlock(pos):
     x, y, z = pos
-    minecraft.getBlock(x, y, z)
+    return minecraft.getBlock(x, y, z)
 
 
 def fillBlock(block, pos):

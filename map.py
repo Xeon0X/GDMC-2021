@@ -82,8 +82,8 @@ def voronoi(
                     ),
                 )
 
-    # fig = voronoi_plot_2d(vor)
-    # plt.show()
+    fig = voronoi_plot_2d(vor)
+    plt.show()
 
 
 print("test 0")
