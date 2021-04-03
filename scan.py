@@ -1,6 +1,7 @@
 from PIL import Image
 from worldLoader import WorldSlice
 import numpy as np
+import requests
 
 
 def heightmap(xzStart, xzDistance):
@@ -32,6 +33,24 @@ def heightmap(xzStart, xzDistance):
 
     for x in range(0, xzDistance[0]):
         for z in range(0, xzDistance[1]):
+            biome = slice.getBiomeAt((xzStart[0] + x, 0, xzStart[1] + z))
             y = heightmapData[x][z]
-            heightmap.putpixel((x, z), (y, y, y))
+            heightmap.putpixel((x, z), (biome, y, biome))
     heightmap.save("heightmap.png")
+
+
+# heightmap((0, 0), (512, 512))
+
+
+def areaCoordinates(xyz1, xyz2):
+    # Works for xyz or xz.
+    xzStart = (min(xyz1[0], xyz2[0]), min(xyz1[-1], xyz2[-1]))
+    xzDistance = (
+        (abs(xyz1[0] - xyz2[0])),
+        (abs(xyz1[-1] - xyz2[-1])),
+    )
+    return xzStart, xzDistance
+
+
+area = areaCoordinates((-256, -256), (256, 256))
+heightmap(area[0], area[1])

@@ -184,3 +184,18 @@ class WorldSlice:
             return "minecraft:air"
         else:
             return blockCompound["Name"].value
+
+    def getBiomeAt(self, blockPos) -> int:
+        """
+        Finds the biome at the given block.
+        :args blockPos: tuple (x,y,z) representing block position
+        :return: the biomeID of the biome the block is in
+        """
+        x, y, z = blockPos
+        chunkX = (blockPos[0] >> 4) - self.chunkRect[0]
+        chunkZ = (blockPos[2] >> 4) - self.chunkRect[1]
+        chunkID = chunkX + chunkZ * self.chunkRect[2]
+
+        biomes = self.nbtfile["Chunks"][chunkID]["Level"]["Biomes"]
+        idx = ((y >> 2) & 63) << 4 | ((z >> 2) & 3) << 2 | ((x >> 2) & 3)
+        return biomes[idx]
