@@ -1,6 +1,7 @@
 import minecraft
 import maths
 import numpy as np
+from worldLoader import WorldSlice
 
 USE_BATCHING = True
 
@@ -27,9 +28,3 @@ def setLine(block, pos1, pos2, pixelPerfect=True):
 
     for i in points:
         setBlock(block, (i[0], i[1], i[2]))
-
-
-# points = np.array([[272, 71, -210],[266, 100, -235],[296, 87, -267],[328, 76, -283]])
-# print(maths.smoothCurveSurface(points))
-
-# setLine("cobblestone", (272, 71, -210), (266, 100, -235))

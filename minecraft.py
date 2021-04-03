@@ -1,4 +1,8 @@
+# From
+# https://github.com/nilsgawlik/gdmc_http_client_python/blob/master/interfaceUtils.py
+
 import requests
+import time
 
 
 def setBlock(x, y, z, str):
@@ -15,10 +19,17 @@ def setBlock(x, y, z, str):
 def getBlock(x, y, z):
     url = "http://localhost:9000/blocks?x=%i&y=%i&z=%i" % (x, y, z)
     # print(url)
-    try:
-        response = requests.get(url)
-    except ConnectionError:
-        return "minecraft:void_air"
+    response = ""
+    while response == "":
+        try:
+            response = requests.get(url)
+            break
+        except requests.exceptions.ConnectionError as e:
+            print(str(e))
+            time.sleep(5)
+            continue
+        except ConnectionError:
+            return "minecraft:void_air"
     return response.text
     # print("%i, %i, %i: %s - %s" % (x, y, z, response.status_code, response.text))
 

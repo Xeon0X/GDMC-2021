@@ -1,87 +1,37 @@
-import threading, queue
-import main
-import requests
-from math import sqrt
+from PIL import Image
+from worldLoader import WorldSlice
+import numpy as np
 
 
-def surface(xyz):
+def heightmap(xzStart, xzDistance):
     """
-    Get the surface position of a given xyz coordinates.
+    Generate a heightmap with nbt data.
 
     Args:
-        xyz (tuple): Coordinates. xyz[1] (Y) matter.
+        xzStart (tuple): xz coordinates of the northwest corner of the
+        area to scan.
+        xzDistance (tuple): xz distance of the southwest corner from the
+        northwest corner.
 
     Returns:
-        tuple: Surface coordinates.
+        heightmap.png
+
+    >>> heightmap((-256, -256), (512, 512))
     """
-    ground = None
-    airBlocks = ["minecraft:air", "minecraft:void_air", "minecraft:cave_air"]
 
-    if (
-        main.getBlock((xyz[0], xyz[1], xyz[2])) in airBlocks
-    ):  # Position is air.
-        while ground == None:
-            if (
-                main.getBlock((xyz[0], xyz[1], xyz[2])) in airBlocks
-            ):  # Position is air.
-                xyz = xyz[0], xyz[1] - 1, xyz[2]
-            else:
-                ground = xyz
+    heightmap = Image.new(
+        "RGB",
+        (xzDistance[0], xzDistance[1]),
+        "red",
+    )
 
-    elif (
-        main.getBlock((xyz[0], xyz[1] + 1, xyz[2])) in airBlocks
-    ):  # Position is the surface.
-        ground = (xyz[0], xyz[1], xyz[2])
+    slice = WorldSlice((xzStart[0], xzStart[1], xzDistance[0], xzDistance[1]))
+    heightmapData = list(
+        np.array(slice.heightmaps["OCEAN_FLOOR"], dtype=np.uint8)
+    )
 
-    else:  # Position is under the surface.
-        while ground == None:
-            if (
-                main.getBlock((xyz[0], xyz[1] + 1, xyz[2])) in airBlocks
-            ):  # Position is air, surface found.
-                ground = (xyz[0], xyz[1] - 1, xyz[2])
-            else:
-                xyz = (xyz[0], xyz[1] + 1, xyz[2])
-
-    return xyz
-
-
-q = queue.Queue()
-import random
-
-
-def multiThreadsSurface():  # TODO : Problem with http number of request. See nbt for better solution.
-    while True:
-        x = q.get()
-        for i in range(5):
-            print(surface((x, 255, i)))
-        q.task_done()
-
-
-# send thirty task requests to the worker
-for x in range(100):
-    arg = random.randint(0, 5)
-    q.put(x)
-    threading.Thread(target=multiThreadsSurface, daemon=True).start()
-
-q.join()
-
-
-def getChunks(x, z, dx, dz, rtype="text"):  # TODO HERE GET BIOME
-    """**Get raw chunk data.**"""
-    print(f"getting chunks {x} {z} {dx} {dz} ")
-
-    url = f"http://localhost:9000/chunks?x={x}&z={z}&dx={dx}&dz={dz}"
-    print(f"request url: {url}")
-    acceptType = "application/octet-stream" if rtype == "bytes" else "text/raw"
-    response = requests.get(url, headers={"Accept": acceptType})
-    print(f"result: {response.status_code}")
-    if response.status_code >= 400:
-        print(f"error: {response.text}")
-
-    if rtype == "text":
-        return response.text
-    elif rtype == "bytes":
-        return response.content
-
-
-# print(type(getChunks(0, 0, 1, 1)))
+    for x in range(0, xzDistance[0]):
+        for z in range(0, xzDistance[1]):
+            y = heightmapData[x][z]
+            heightmap.putpixel((x, z), (y, y, y))
+    heightmap.save("heightmap.png")

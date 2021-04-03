@@ -1,21 +1,36 @@
-from math import ceil, log2
-from bitarray import BitArray
+# ! /usr/bin/python3
+# From
+# https://github.com/nilsgawlik/gdmc_http_client_python/blob/master/worldLoader.py
+
+"""### Provides tools for reading chunk data
+This module contains functions to:
+* Calculate a heightmap ideal for building
+* Visualize numpy arrays
+"""
+__all__ = ["WorldSlice"]
+# __version__
+
 from io import BytesIO
-import requests
+from math import ceil, log2
+
 import nbt
 import numpy as np
+import requests
+
+from bitarray import BitArray
 
 
 def getChunks(x, z, dx, dz, rtype="text"):
-    print("getting chunks %i %i %i %i " % (x, z, dx, dz))
+    """**Get raw chunk data.**"""
+    print(f"getting chunks {x} {z} {dx} {dz} ")
 
-    url = "http://localhost:9000/chunks?x=%i&z=%i&dx=%i&dz=%i" % (x, z, dx, dz)
-    print("request url: %s" % url)
+    url = f"http://localhost:9000/chunks?x={x}&z={z}&dx={dx}&dz={dz}"
+    print(f"request url: {url}")
     acceptType = "application/octet-stream" if rtype == "bytes" else "text/raw"
     response = requests.get(url, headers={"Accept": acceptType})
-    print("result: %i" % response.status_code)
+    print(f"result: {response.status_code}")
     if response.status_code >= 400:
-        print("error: %s" % response.text)
+        print(f"error: {response.text}")
 
     if rtype == "text":
         return response.text
@@ -24,13 +39,18 @@ def getChunks(x, z, dx, dz, rtype="text"):
 
 
 class CachedSection:
+    """**Represents a cached chunk section (16x16x16).**"""
+
     def __init__(self, palette, blockStatesBitArray):
         self.palette = palette
         self.blockStatesBitArray = blockStatesBitArray
 
 
 class WorldSlice:
+    """**Contains information on a slice of the world.**"""
+
     # TODO format this to blocks
+
     def __init__(
         self,
         rect,
@@ -127,6 +147,7 @@ class WorldSlice:
         print("done")
 
     def getBlockCompoundAt(self, blockPos):
+        """**Returns block data.**"""
         # chunkID = relativeChunkPos[0] + relativeChunkPos[1] * self.chunkRect[2]
 
         # section = self.nbtfile['Chunks'][chunkID]['Level']['Sections'][(blockPos[1] >> 4)+1]
@@ -157,28 +178,9 @@ class WorldSlice:
         return palette[bitarray.getAt(blockIndex)]
 
     def getBlockAt(self, blockPos):
+        """**Returns the block's namespaced id at blockPos.**"""
         blockCompound = self.getBlockCompoundAt(blockPos)
         if blockCompound == None:
             return "minecraft:air"
         else:
             return blockCompound["Name"].value
-
-    def getBiomeAt(self, blockPos) -> int:
-        """
-        Finds the biome at the given block.
-        :param blockPos: tuple (x,y,z) representing block position
-        :return: the biomeID of the biome the block is in
-        """
-        x, y, z = blockPos
-        chunkX = (blockPos[0] >> 4) - self.chunkRect[0]
-        chunkZ = (blockPos[2] >> 4) - self.chunkRect[1]
-        chunkID = chunkX + chunkZ * self.chunkRect[2]
-
-        biomes = self.nbtfile["Chunks"][chunkID]["Level"]["Biomes"]
-        idx = ((y >> 2) & 63) << 4 | ((z >> 2) & 3) << 2 | ((x >> 2) & 3)
-        return biomes[idx]
-
-
-rect = (0, 0, 1, 1)
-slice = WorldSlice(rect)
-print(slice)

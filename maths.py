@@ -168,7 +168,7 @@ def perpendicular(distance, xy1, xy2):
 
 def smoothCurve(points, number_true_pts=40, debug=False):
     """
-    returns a 2d curve that is used to interpolate the curve
+    Returns a 3d curve.
 
     https://stackoverflow.com/questions/18962175/spline-interpolation-coefficients-of-a-line-curve-in-3d-space
 
@@ -222,7 +222,7 @@ def smoothCurve(points, number_true_pts=40, debug=False):
     return x, y, z
 
 
-def TESTsmoothRoads(points):  # TODO: delete but save cool parts before.
+def TESTsmoothRoads(points):  # TODO: Delete but save cool parts before.
     """
     Preset road
     """
