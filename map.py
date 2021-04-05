@@ -4,13 +4,14 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 import matplotlib.pyplot as plt
 import main
 import maths
+from PIL import Image
 
 
-def voronoi(
+def voronoiRandom(
     number, xMinArea, xMaxArea, yMinArea, yMaxArea, y, block, distanceMin
-):  # HERE
+):  # TODO: Delete. Old voronoi.
     """
-    Draws a Voronoi diagram of the given points on the specified area.
+    Draws a Voronoi diagram in the given points on the specified area.
 
     Args:
         number (int): number of random points
@@ -172,3 +173,210 @@ def voronoiCurve(
             l += 1
         else:
             l = 0
+
+
+def DELETEvoronoi(
+    coordsBuildable,
+    coordsNotBuildable,
+    xMinArea,
+    xMaxArea,
+    yMinArea,
+    yMaxArea,
+    block,
+):  # HERE : Refactoring NOW!  if coords[pointRegions[i]] in coordsNotBuildable:   IndexError: list index out of range
+    """
+    Draws a Voronoi diagram of the given points on the specified area.
+
+    TODO: Refactoring
+    """
+
+    coords = coordsBuildable + coordsNotBuildable
+    points = np.array((coords))
+    vor = Voronoi(points)
+
+    vertices = list(vor.vertices)
+    allRegions = list(vor.regions)
+    allPointRegions = list(vor.point_region)
+    print(allRegions, len(allRegions))
+    print(allPointRegions, len(allPointRegions))
+
+    regions = []
+    pointRegions = []
+    coords = []
+    nRegion = -1
+    for region in allRegions:
+        if -1 not in region:
+            nRegion += 1
+            if all(
+                (xMinArea <= vertices[vertice][0] <= xMaxArea)
+                and (yMinArea <= vertices[vertice][1] <= yMaxArea)
+                for vertice in region
+            ):
+                regions.append(region)
+                pointRegions.append(allPointRegions[nRegion])
+
+    print(pointRegions, len(pointRegions))
+    print(coordsNotBuildable, len(coordsNotBuildable))
+    print(coordsBuildable, len(coordsBuildable))
+    print(coords, len(coords))
+    print(len(regions))
+
+    for i in range(len(regions)):
+        if -1 not in regions[i]:
+            for j in range(len(regions[i]) - 1):
+                print(i, len(pointRegions), len(coords), pointRegions[i])
+                if coords[pointRegions[i]] in coordsNotBuildable:
+                    mat = "red_concrete"
+                else:
+                    mat = block
+                main.setLine(
+                    mat,
+                    (
+                        vertices[regions[i][j]][0],
+                        findGround(
+                            (xMinArea, yMinArea),
+                            (
+                                vertices[regions[i][j]][0],
+                                vertices[regions[i][j]][1],
+                            ),
+                        )[-1],
+                        vertices[regions[i][j]][1],
+                    ),
+                    (
+                        vertices[regions[i][j + 1]][0],
+                        findGround(
+                            (xMinArea, yMinArea),
+                            (
+                                vertices[regions[i][j + 1]][0],
+                                vertices[regions[i][j + 1]][1],
+                            ),
+                        )[-1],
+                        vertices[regions[i][j + 1]][1],
+                    ),
+                )
+                main.setLine(
+                    mat,
+                    (
+                        vertices[regions[i][0]][0],
+                        findGround(
+                            (xMinArea, yMinArea),
+                            (
+                                vertices[regions[i][j]][0],
+                                vertices[regions[i][j]][1],
+                            ),
+                        )[-1],
+                        vertices[regions[i][0]][1],
+                    ),
+                    (
+                        vertices[regions[i][-1]][0],
+                        findGround(
+                            (xMinArea, yMinArea),
+                            (
+                                vertices[regions[i][j + 1]][0],
+                                vertices[regions[i][j + 1]][1],
+                            ),
+                        )[-1],
+                        vertices[regions[i][-1]][1],
+                    ),
+                )
+
+
+def findGround(xzStart, xz):
+    """
+    Find the surface at xz using heightmap.
+
+    Args:
+        xzStart (tuple): [description]
+        xz (tuple): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    im = Image.open("heightmap.png")
+    x = round(xz[0] - xzStart[0])
+    z = round(xz[-1] - xzStart[-1])
+    # Blue is defined as the height ([2]).
+    return xz[0], im.getpixel((x, z))[2], xz[-1]
+
+
+def voronoi(blocks, area, zonesDistrictsPos, xzStart):  # WORKS!
+    # Coordinates of each district point.
+    districtsPos = [
+        districtPos for zone in zonesDistrictsPos for districtPos in zone
+    ]
+    # print(districtsPos, "districtsPos")
+    vor = Voronoi(np.array(districtsPos))
+
+    # List of coordinates of each edge.
+    edgesPos = vor.vertices
+    # List of list of indexes of edges. Each list is a district.
+    districtsEdgesInd = vor.regions
+    # Actual index = actual coordinates in districtsPos, value = index of the region.
+    districtsPointInd = vor.point_region
+
+    # print(edgesPos)
+    # print(districtsEdgesInd)
+    # print(districtsPointInd)
+
+    districtInd = -1
+    for districtPointInd in districtsPointInd:
+        districtInd += 1
+
+        # Take districts which are inside the area.
+        if -1 not in districtsEdgesInd[districtPointInd]:
+            print("a")
+            if all(
+                (
+                    area[0][0] + 1
+                    <= edgesPos[districtEdgesInd][0]
+                    <= area[1][0] - 1
+                )
+                and (
+                    area[0][1] + 1
+                    <= edgesPos[districtEdgesInd][1]
+                    <= area[1][1] - 1
+                )
+                for districtEdgesInd in districtsEdgesInd[districtPointInd]
+            ):
+                print("b")
+
+                # Find out which area the district belongs to.
+                for zone in range(len(zonesDistrictsPos)):
+                    if districtsPos[districtInd] in zonesDistrictsPos[zone]:
+
+                        # Place line.
+                        for i in range(
+                            len(districtsEdgesInd[districtPointInd]) - 2
+                        ):
+                            main.setLine(
+                                blocks[zone],
+                                findGround(
+                                    xzStart,
+                                    edgesPos[
+                                        districtsEdgesInd[districtPointInd][i]
+                                    ],
+                                ),
+                                findGround(
+                                    xzStart,
+                                    edgesPos[
+                                        districtsEdgesInd[districtPointInd][
+                                            i + 1
+                                        ]
+                                    ],
+                                ),
+                            )
+                        main.setLine(
+                            blocks[zone],
+                            findGround(
+                                xzStart,
+                                edgesPos[
+                                    districtsEdgesInd[districtPointInd][0]
+                                ],
+                            ),
+                            findGround(
+                                xzStart,
+                                edgesPos[
+                                    districtsEdgesInd[districtPointInd][-1]
+                                ],
+                            ),
+                        )
