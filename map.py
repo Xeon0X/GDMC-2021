@@ -183,7 +183,7 @@ def DELETEvoronoi(
     yMinArea,
     yMaxArea,
     block,
-):  # HERE : Refactoring NOW!  if coords[pointRegions[i]] in coordsNotBuildable:   IndexError: list index out of range
+):  # TODO: Delete
     """
     Draws a Voronoi diagram of the given points on the specified area.
 
@@ -286,20 +286,20 @@ def findGround(xzStart, xz):
     Find the surface at xz using heightmap.
 
     Args:
-        xzStart (tuple): [description]
-        xz (tuple): [description]
+        xzStart (tuple): Starting coordinates of the heightmap (northwest corner).
+        xz (tuple): Coordinates xz in the Minecraft world.
 
     Returns:
-        [type]: [description]
+        tuple: Coordinates xyz in the Minecraft world.
     """
     im = Image.open("heightmap.png")
     x = round(xz[0] - xzStart[0])
     z = round(xz[-1] - xzStart[-1])
-    # Blue is defined as the height ([2]).
-    return xz[0], im.getpixel((x, z))[2], xz[-1]
+    # Alpha is defined as the height ([3]).
+    return xz[0], im.getpixel((x, z))[3], xz[-1]
 
 
-def voronoi(blocks, area, zonesDistrictsPos, xzStart):  # WORKS!
+def voronoi(blocks, area, zonesDistrictsPos, xzStart):  # TODO: Refactoring.
     # Coordinates of each district point.
     districtsPos = [
         districtPos for zone in zonesDistrictsPos for districtPos in zone
