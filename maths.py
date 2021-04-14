@@ -1,6 +1,6 @@
 from math import sqrt
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy import interpolate
 
 
@@ -166,7 +166,7 @@ def perpendicular(distance, xy1, xy2):
     return ((round(x3), round(y3)), (round(x4), round(y4)))
 
 
-def smoothCurve(points, number_true_pts=40, debug=False):
+def curve(points, number_true_pts=40, debug=False):
     """
     Returns a 3d curve.
 
@@ -175,10 +175,10 @@ def smoothCurve(points, number_true_pts=40, debug=False):
     Args:
         points (np.array): Points where the curves should pass.
         number_true_pts (int, optional): Number of points to compute. Defaults to 40.
-        debug (bool, optional): Just for a visual graphic. Defaults to False.
+        debug (bool, optional): Just a visual graphic. Defaults to False.
 
     Returns:
-        tuple: tuple of list of each coordinate.
+        tuple: Tuple of list of each coordinate.
     """
 
     x_sample = []
@@ -222,7 +222,7 @@ def smoothCurve(points, number_true_pts=40, debug=False):
     return x, y, z
 
 
-def TESTsmoothRoads(points):  # TODO: Delete but save cool parts before.
+def DELETEsmoothRoads(points):  # TODO: Delete but save cool parts before.
     """
     Preset road
     """
@@ -239,7 +239,7 @@ def TESTsmoothRoads(points):  # TODO: Delete but save cool parts before.
 
     # Calculation of the main line
     lineCenter0 = []
-    x, y, z = smoothCurve(points, num_true_pts)
+    x, y, z = curve(points, num_true_pts)
     for i in range(len(x) - 1):
         pos0 = x[i], y[i], z[i]
         pos1 = (x[i + 1], y[i + 1], z[i + 1])
@@ -275,7 +275,7 @@ def TESTsmoothRoads(points):  # TODO: Delete but save cool parts before.
     z = [listCenter[i][2] for i in range(len(listCenter))]
 
     for i in range(0, len(listCenter)):
-        line0, line1 = smoothCurveOffset(x, y, z, N=5)
+        line0, line1 = curveOffset(x, y, z, N=5)
     for i in range(len(line0)):
         setBlock("blue_concrete", line0[i])
         setBlock(
@@ -308,9 +308,9 @@ def TESTsmoothRoads(points):  # TODO: Delete but save cool parts before.
     #         ### ICI on en était au pillier
 
 
-def smoothCurveSurface(points):  # HERE
+def DELETEsmoothCurveSurface(points):  # TODO: Delete.
     print("test réussi")
-    # TODO: Work in progress. Transform into smoothCurveSurface. Specific roads inside main?
+    # TODO: Work in progress. Specific roads inside main?
 
     # Calculating resolution depending of the distance.
     distance = 0
@@ -324,7 +324,7 @@ def smoothCurveSurface(points):  # HERE
 
     # Calculation of the main line.
     lineCenter0 = []
-    x, y, z = smoothCurve(points, number_true_pts)
+    x, y, z = curve(points, number_true_pts)
     for i in range(len(x) - 1):
         pos0 = x[i], y[i], z[i]
         pos1 = (x[i + 1], y[i + 1], z[i + 1])
@@ -350,7 +350,7 @@ def smoothCurveSurface(points):  # HERE
     line1 = []
 
     for i in range(0, N * 2):
-        lineA, lineB = smoothCurveOffset(x, y, z, i / 2)
+        lineA, lineB = curveOffset(x, y, z, i / 2)
         line0.append(lineA)
         line1.append(lineB)
 
@@ -418,7 +418,7 @@ def smoothCurveSurface(points):  # HERE
     # vérifier distance ground pour chaque pair qui encadre la parcelle. Si une des deux est == void alors ne rien mettre, si les 2 == fill alors fill
 
 
-def smoothCurveOffset(x, y, z, distance=5):
+def curveOffset(x, y, z, distance=5):
     """
     Offset a curve.
 
@@ -429,11 +429,11 @@ def smoothCurveOffset(x, y, z, distance=5):
         distance (int, optional): Distance of offsetting. Defaults to 5.
 
     Returns:
-        tuple: lists of points from the upper curve and the lower curve.
+        tuple: Lists of points from the upper curve and the lower curve.
 
     TODO:
-        The accuracy can be improved by finding the inner and outer arc
-        outer arc: connect the points of the arc and not calculate their
+        The accuracy can be improved by finding the inner and outer arc:
+        connect the points of the arc and not calculate their
         middle.
     """
     lineA = []
@@ -578,72 +578,202 @@ def cleanLine(path):
         Add 3D.
         Add new patterns.
     """
-    i = 0
-    while i < len(path):
 
-        # 2 blocks, 90 degrees, 2 blocks = 1 block, 1 block, 1 block
-        if i + 3 < len(path):
-            if (
-                path[i][0] == path[i + 1][0]
-                and path[i + 2][1] == path[i + 3][1]
-            ):
-                path.insert((i + 1), (path[i + 2][0], path[i + 1][1]))
-                del path[i + 2]  # 2nd block
-                del path[i + 2]  # 3rd block
-                i -= 10
-                continue
-            elif (
-                path[i][1] == path[i + 1][1]
-                and path[i + 2][0] == path[i + 3][0]
-            ):
-                path.insert((i + 1), (path[i + 1][0], path[i + 2][1]))
-                del path[i + 2]  # 2nd block
-                del path[i + 2]  # 3rd block
-                i -= 10
-                continue
+    pathTemp = []
+    for i in path:
+        if i not in pathTemp:
+            pathTemp.append(i)
+    path = pathTemp
 
-        # 1 block, 3 blocks, 1 block = 1 block, 2 blocks, 2 blocks
-        if i - 1 >= 0 and i + 5 <= len(path):
-            if (
-                (
-                    path[i + 1][1] == path[i + 2][1]
-                    and path[i + 2][1] == path[i + 3][1]
-                )
-                and (
-                    path[i + 1][1] != path[i][1]
-                    and path[i + 3][1] != path[i + 4][1]
-                )
-                and (
-                    path[i - 1][1] != path[i][1]
-                    and path[i + 4][1] != path[i + 5][1]
-                )
-            ):
-                path.insert((i + 1), (path[i + 1][0], path[i][1]))
-                del path[i + 2]  # 2nd block
-                i -= 10
-                continue
-            elif (
-                (
-                    path[i + 1][0] == path[i + 2][0]
-                    and path[i + 2][0] == path[i + 3][0]
-                )
-                and (
-                    path[i + 1][0] != path[i][0]
-                    and path[i + 3][0] != path[i + 4][0]
-                )
-                and (
-                    path[i - 1][0] != path[i][0]
-                    and path[i + 4][0] != path[i + 5][0]
-                )
-            ):
-                path.insert((i + 1), (path[i][0], path[i + 1][1]))
-                del path[i + 2]  # 2nd block
-                i -= 10
-                continue
+    # i = 0
+    # while i < len(path):
 
-        i += 1
+    #     # 2 blocks, 90 degrees, 2 blocks = 1 block, 1 block, 1 block
+    #     if i + 3 < len(path):
+    #         if (
+    #             path[i][0] == path[i + 1][0]
+    #             and path[i + 2][1] == path[i + 3][1]
+    #         ):
+    #             path.insert((i + 1), (path[i + 2][0], path[i + 1][1]))
+    #             del path[i + 2]  # 2nd block
+    #             del path[i + 2]  # 3rd block
+    #             i -= 10
+    #             continue
+    #         elif (
+    #             path[i][1] == path[i + 1][1]
+    #             and path[i + 2][0] == path[i + 3][0]
+    #         ):
+    #             path.insert((i + 1), (path[i + 1][0], path[i + 2][1]))
+    #             del path[i + 2]  # 2nd block
+    #             del path[i + 2]  # 3rd block
+    #             i -= 10
+    #             continue
+
+    #     # 1 block, 3 blocks, 1 block = 1 block, 2 blocks, 2 blocks
+    #     if i - 1 >= 0 and i + 5 <= len(path):
+    #         if (
+    #             (
+    #                 path[i + 1][1] == path[i + 2][1]
+    #                 and path[i + 2][1] == path[i + 3][1]
+    #             )
+    #             and (
+    #                 path[i + 1][1] != path[i][1]
+    #                 and path[i + 3][1] != path[i + 4][1]
+    #             )
+    #             and (
+    #                 path[i - 1][1] != path[i][1]
+    #                 and path[i + 4][1] != path[i + 5][1]
+    #             )
+    #         ):
+    #             path.insert((i + 1), (path[i + 1][0], path[i][1]))
+    #             del path[i + 2]  # 2nd block
+    #             i -= 10
+    #             continue
+    #         elif (
+    #             (
+    #                 path[i + 1][0] == path[i + 2][0]
+    #                 and path[i + 2][0] == path[i + 3][0]
+    #             )
+    #             and (
+    #                 path[i + 1][0] != path[i][0]
+    #                 and path[i + 3][0] != path[i + 4][0]
+    #             )
+    #             and (
+    #                 path[i - 1][0] != path[i][0]
+    #                 and path[i + 4][0] != path[i + 5][0]
+    #             )
+    #         ):
+    #             path.insert((i + 1), (path[i][0], path[i + 1][1]))
+    #             del path[i + 2]  # 2nd block
+    #             i -= 10
+    #             continue
+
+    #     i += 1
+
     return path
 
 
-def distance2D(A, B):
+def distance2D(A, B):  # TODO : Can be better.
     return sqrt((B[0] - A[0]) ** 2 + (B[1] - A[1]) ** 2)
+
+
+def curveSurface(points, distance, resolution=7):
+    """
+    Create a curve with a thickness.
+
+    Args:
+        points (numpy.ndarray): Points where the curve should go.
+        distance (int): Thickness.
+        resolution (int, optional): Number of blocks that separate each
+        point to calculate parallel curves. 0 to use the points calculated to
+        create the curve. Defaults to 7.
+
+    Returns:
+        dict: Key 0 is the list of coordinates of the center line.
+        Positive keys are lists of coordinates of lines on the right
+        side, negative keys are for the left side.
+
+    >>> smoothCurveSurface(
+            np.array(
+                [
+                    [12, 248, -103],
+                    [-5, 219, -85],
+                    [-22, 205, -128],
+                    [-51, 70, -240],
+                    [40, 198, -166],
+                    [19, 241, -102],
+                    [-6, 62, -223],
+                ]
+            ),
+            5,
+            resolution=7,
+        )
+    """
+
+    # Calculate resolution of the main curve depending of the total curve length.
+    lenCurve = 0
+    for i in range(len(points) - 1):
+        lenCurve += sqrt(
+            ((points[i][0] - points[i + 1][0]) ** 2)
+            + ((points[i][1] - points[i + 1][1]) ** 2)
+            + ((points[i][2] - points[i + 1][2]) ** 2)
+        )
+    number_true_pts = round(lenCurve / 10)
+
+    # Calculate the main line.
+    centerLineTemp = []
+    X, Y, Z = curve(points, number_true_pts)
+    for i in range(len(X) - 1):
+        xyz0 = X[i], Y[i], Z[i]
+        xyz1 = (X[i + 1], Y[i + 1], Z[i + 1])
+        centerLineTemp.extend(line(xyz0, xyz1))
+
+    # Clean the main line.
+    centerLine = cleanLine(centerLineTemp)
+
+    # Offset.
+    centerPoints = []
+
+    if resolution != 0:
+        for i in range(0, len(centerLine), resolution):
+            centerPoints.append(centerLine[i])
+    else:
+        for i in range(len(X)):
+            centerPoints.append((X[i], Y[i], Z[i]))
+
+    X = [centerPoints[i][0] for i in range(len(centerPoints))]
+    Y = [centerPoints[i][1] for i in range(len(centerPoints))]
+    Z = [centerPoints[i][2] for i in range(len(centerPoints))]
+
+    rightPoints = []
+    leftPoints = []
+
+    for i in range(0, distance * 2):
+        rightPoint, leftPoint = curveOffset(X, Y, Z, i / 2)
+        rightPoints.append(rightPoint)
+        leftPoints.append(leftPoint)
+
+    # Creating lines on each side between each point.
+    rightLine = []
+    leftLine = []
+    rightSide = []
+    leftSide = []
+
+    for i in range(len(rightPoints)):
+        for j in range(len(rightPoints[i]) - 1):
+            rightLine.extend(
+                line(
+                    rightPoints[i][j],
+                    rightPoints[i][j + 1],
+                    pixelPerfect=False,
+                )
+            )
+        rightSide.append(rightLine)
+        rightLine = []
+
+    for i in range(len(leftPoints)):
+        for j in range(len(leftPoints[i]) - 1):
+            leftLine.extend(
+                line(
+                    leftPoints[i][j],
+                    leftPoints[i][j + 1],
+                    pixelPerfect=False,
+                )
+            )
+        leftSide.append(leftLine)
+        leftLine = []
+
+    # Returns. 0 is the center line, positive values ​​are lines on the
+    # right, negative values ​​are lines on the left.
+    smoothCurveSurfaceDict = {}
+    smoothCurveSurfaceDict[0] = centerLine
+    countLine = 0
+    for l in rightSide:
+        countLine += 1
+        smoothCurveSurfaceDict[countLine] = l
+    countLine = 0
+    for l in leftSide:
+        countLine -= 1
+        smoothCurveSurfaceDict[countLine] = l
+
+    return smoothCurveSurfaceDict

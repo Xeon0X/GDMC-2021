@@ -1,13 +1,14 @@
-import numpy as np
-import random
-from scipy.spatial import Voronoi, voronoi_plot_2d
-import matplotlib.pyplot as plt
 import main
 import maths
+
+import random
+import numpy as np
 from PIL import Image
+from scipy.spatial import Voronoi, voronoi_plot_2d
+import matplotlib.pyplot as plt
 
 
-def voronoiRandom(
+def DELETEvoronoiRandom(
     number, xMinArea, xMaxArea, yMinArea, yMaxArea, y, block, distanceMin
 ):  # TODO: Delete. Old voronoi.
     """
@@ -95,7 +96,7 @@ def voronoiRandom(
     plt.show()
 
 
-def voronoiCurve(
+def DELETEvoronoiCurve(
     number, xMinArea, xMaxArea, yMinArea, yMaxArea, y, block, distanceMin
 ):  # TODO: Delete, just for fun.
     randomCoords = []
@@ -159,7 +160,7 @@ def voronoiCurve(
                     )
                 )
     ppoints = ppoints1 + ppoints2 + ppoints3
-    xs, ys, zs = maths.smoothCurve(
+    xs, ys, zs = maths.curve(
         (ppoints),
         number_true_pts=900,
         debug=False,
