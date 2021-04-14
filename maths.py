@@ -838,20 +838,24 @@ def circle_line_segment_intersection(
     circle_center, circle_radius, pt1, pt2, full_line=True, tangent_tol=1e-9
 ):
     """
-    Find the points at which a circle intersects a line-segment.  This
+    Find the points at which a circle intersects a line-segment. This
     can happen at 0, 1, or 2 points.
 
     https://stackoverflow.com/questions/30844482/what-is-most-efficient-way-to-find-the-intersection-of-a-line-and-a-circle-in-py
-
-    :param circle_center: The (x, y) location of the circle center
-    :param circle_radius: The radius of the circle
-    :param pt1: The (x, y) location of the first point of the segment
-    :param pt2: The (x, y) location of the second point of the segment
-    :param full_line: True to find intersections along full line - not just in the segment.  False will just return intersections within the segment.
-    :param tangent_tol: Numerical tolerance at which we decide the intersections are close enough to consider it a tangent
-    :return Sequence[Tuple[float, float]]: A list of length 0, 1, or 2, where each element is a point at which the circle intercepts a line segment.
-
     Note: We follow: http://mathworld.wolfram.com/Circle-LineIntersection.html
+
+    Args:
+        circle_center ([type]): The (x, y) location of the circle center.
+        circle_radius ([type]): The radius of the circle.
+        pt1 ([type]): The (x, y) location of the first point of the segment.
+        pt2 ([type]): The (x, y) location of the second point of the segment.
+        full_line (bool, optional): True to find intersections along
+        full line - not just in the segment.  False will just return
+        intersections within the segment. Defaults to True.
+        tangent_tol ([type], optional): Numerical tolerance at which we decide the intersections are close enough to consider it a tangent. Defaults to 1e-9.
+
+    Returns:
+        list: A list of length 0, 1, or 2, where each element is a point at which the circle intercepts a line segment.
     """
 
     (p1x, p1y), (p2x, p2y), (cx, cy) = pt1, pt2, circle_center
