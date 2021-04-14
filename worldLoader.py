@@ -1,6 +1,7 @@
 # ! /usr/bin/python3
-# From
-# https://github.com/nilsgawlik/gdmc_http_client_python/blob/master/worldLoader.py
+"""
+From https://github.com/nilsgawlik/gdmc_http_client_python/blob/master/worldLoader.py
+"""
 
 """### Provides tools for reading chunk data
 This module contains functions to:

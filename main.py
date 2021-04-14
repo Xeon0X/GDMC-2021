@@ -1,4 +1,4 @@
-import minecraft
+import interfaceUtils as minecraft
 import numpy as np
 from worldLoader import WorldSlice
 import maths
