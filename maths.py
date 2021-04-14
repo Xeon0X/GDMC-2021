@@ -777,3 +777,122 @@ def curveSurface(points, distance, resolution=7):
         smoothCurveSurfaceDict[countLine] = l
 
     return smoothCurveSurfaceDict
+
+
+def getAngle(p0, p1, p2):
+    """
+    Compute angle (in degrees) for p0p1p2 corner.
+
+    https://stackoverflow.com/questions/13226038/calculating-angle-between-two-vectors-in-python
+
+    Args:
+        p0 (numpy.ndarray: Points in the form of [x,y].
+        p1 (numpy.ndarray: Points in the form of [x,y].
+        p2 (numpy.ndarray: Points in the form of [x,y].
+
+    Returns:
+        float: Angle negative for counterclockwise angle, angle positive
+        for counterclockwise angle.
+    """
+    if p2 is None:
+        p2 = p1 + np.array([1, 0])
+    v0 = np.array(p0) - np.array(p1)
+    v1 = np.array(p2) - np.array(p1)
+
+    angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
+    return np.degrees(angle)
+
+
+def lineIntersection(line0, line1):
+    """
+    Find (or not) intersection between two lines.
+
+    https://stackoverflow.com/questions/20677795/how-do-i-compute-the-intersection-point-of-two-lines
+
+    Args:
+        line0 (tuple): Tuple of tuple of coordinates.
+        line1 (tuple): Tuple of tuple of coordinates.
+
+    Returns:
+        tuple: Coordinates.
+
+    >>> lineIntersection(((0, 0), (0, 5)), ((2.5, 2.5), (-2.5, 2.5)))
+    """
+    xdiff = (line0[0][0] - line0[1][0], line1[0][0] - line1[1][0])
+    ydiff = (line0[0][1] - line0[1][1], line1[0][1] - line1[1][1])
+
+    def det(a, b):
+        return a[0] * b[1] - a[1] * b[0]
+
+    div = det(xdiff, ydiff)
+    if div == 0:
+        return None
+
+    d = (det(*line0), det(*line1))
+    x = det(d, xdiff) / div
+    y = det(d, ydiff) / div
+    return x, y
+
+
+def circle_line_segment_intersection(
+    circle_center, circle_radius, pt1, pt2, full_line=True, tangent_tol=1e-9
+):
+    """
+    Find the points at which a circle intersects a line-segment.  This
+    can happen at 0, 1, or 2 points.
+
+    https://stackoverflow.com/questions/30844482/what-is-most-efficient-way-to-find-the-intersection-of-a-line-and-a-circle-in-py
+
+    :param circle_center: The (x, y) location of the circle center
+    :param circle_radius: The radius of the circle
+    :param pt1: The (x, y) location of the first point of the segment
+    :param pt2: The (x, y) location of the second point of the segment
+    :param full_line: True to find intersections along full line - not just in the segment.  False will just return intersections within the segment.
+    :param tangent_tol: Numerical tolerance at which we decide the intersections are close enough to consider it a tangent
+    :return Sequence[Tuple[float, float]]: A list of length 0, 1, or 2, where each element is a point at which the circle intercepts a line segment.
+
+    Note: We follow: http://mathworld.wolfram.com/Circle-LineIntersection.html
+    """
+
+    (p1x, p1y), (p2x, p2y), (cx, cy) = pt1, pt2, circle_center
+    (x1, y1), (x2, y2) = (p1x - cx, p1y - cy), (p2x - cx, p2y - cy)
+    dx, dy = (x2 - x1), (y2 - y1)
+    dr = (dx ** 2 + dy ** 2) ** 0.5
+    big_d = x1 * y2 - x2 * y1
+    discriminant = circle_radius ** 2 * dr ** 2 - big_d ** 2
+
+    if discriminant < 0:  # No intersection between circle and line
+        return []
+    else:  # There may be 0, 1, or 2 intersections with the segment
+        intersections = [
+            (
+                cx
+                + (
+                    big_d * dy
+                    + sign * (-1 if dy < 0 else 1) * dx * discriminant ** 0.5
+                )
+                / dr ** 2,
+                cy
+                + (-big_d * dx + sign * abs(dy) * discriminant ** 0.5)
+                / dr ** 2,
+            )
+            for sign in ((1, -1) if dy < 0 else (-1, 1))
+        ]  # This makes sure the order along the segment is correct
+        if (
+            not full_line
+        ):  # If only considering the segment, filter out intersections that do not fall within the segment
+            fraction_along_segment = [
+                (xi - p1x) / dx if abs(dx) > abs(dy) else (yi - p1y) / dy
+                for xi, yi in intersections
+            ]
+            intersections = [
+                pt
+                for pt, frac in zip(intersections, fraction_along_segment)
+                if 0 <= frac <= 1
+            ]
+        if (
+            len(intersections) == 2 and abs(discriminant) <= tangent_tol
+        ):  # If line is tangent to circle, return just one point (as both intersections have same location)
+            return [intersections[0]]
+        else:
+            return intersections
