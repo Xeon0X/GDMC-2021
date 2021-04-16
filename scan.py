@@ -324,12 +324,13 @@ def skeletonize(image):
     cv2.destroyAllWindows()
 
 
-heightmap((-256, -256), (512, 512))
+heightmap((-141, -160), (230, 600))
 # sobel("heightmap.png")
 # edge("heightmap_sobel.png")
 # sobel("heightmap_edge.png")
 # canny("heightmap_sobel.png")
-blur("heightmap_biome.png")
-skeletonize("heightmap_medianBlur.png")
+# blur("heightmap_biome.png")
+# skeletonize("heightmap_medianBlur.png")
 
 print("DONE")
+# print(areaCoordinates((-141, -160), (89, 440)))

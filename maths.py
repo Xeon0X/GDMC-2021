@@ -1,4 +1,6 @@
 from math import sqrt
+from math import pi
+from math import cos, sin
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate
@@ -564,7 +566,7 @@ def pixelPerfect(path):
     return path
 
 
-def cleanLine(path):
+def cleanLine(path):  # HERE
     """
     Clean and smooth a list of blocks.
 
@@ -575,8 +577,10 @@ def cleanLine(path):
         list: List cleaned.
 
     TODO:
-        Add 3D.
+        Do not work perfecly since 16/04/2021.
+        Add 3D. 3D Supported but not used. 16/04/2021.
         Add new patterns.
+        Problem with i -= 10 : solved but not understand why. 16/04/2021.
     """
 
     pathTemp = []
@@ -585,70 +589,96 @@ def cleanLine(path):
             pathTemp.append(i)
     path = pathTemp
 
-    # i = 0
-    # while i < len(path):
+    i = 0
 
-    #     # 2 blocks, 90 degrees, 2 blocks = 1 block, 1 block, 1 block
-    #     if i + 3 < len(path):
-    #         if (
-    #             path[i][0] == path[i + 1][0]
-    #             and path[i + 2][1] == path[i + 3][1]
-    #         ):
-    #             path.insert((i + 1), (path[i + 2][0], path[i + 1][1]))
-    #             del path[i + 2]  # 2nd block
-    #             del path[i + 2]  # 3rd block
-    #             i -= 10
-    #             continue
-    #         elif (
-    #             path[i][1] == path[i + 1][1]
-    #             and path[i + 2][0] == path[i + 3][0]
-    #         ):
-    #             path.insert((i + 1), (path[i + 1][0], path[i + 2][1]))
-    #             del path[i + 2]  # 2nd block
-    #             del path[i + 2]  # 3rd block
-    #             i -= 10
-    #             continue
+    while i < len(path):
 
-    #     # 1 block, 3 blocks, 1 block = 1 block, 2 blocks, 2 blocks
-    #     if i - 1 >= 0 and i + 5 <= len(path):
-    #         if (
-    #             (
-    #                 path[i + 1][1] == path[i + 2][1]
-    #                 and path[i + 2][1] == path[i + 3][1]
-    #             )
-    #             and (
-    #                 path[i + 1][1] != path[i][1]
-    #                 and path[i + 3][1] != path[i + 4][1]
-    #             )
-    #             and (
-    #                 path[i - 1][1] != path[i][1]
-    #                 and path[i + 4][1] != path[i + 5][1]
-    #             )
-    #         ):
-    #             path.insert((i + 1), (path[i + 1][0], path[i][1]))
-    #             del path[i + 2]  # 2nd block
-    #             i -= 10
-    #             continue
-    #         elif (
-    #             (
-    #                 path[i + 1][0] == path[i + 2][0]
-    #                 and path[i + 2][0] == path[i + 3][0]
-    #             )
-    #             and (
-    #                 path[i + 1][0] != path[i][0]
-    #                 and path[i + 3][0] != path[i + 4][0]
-    #             )
-    #             and (
-    #                 path[i - 1][0] != path[i][0]
-    #                 and path[i + 4][0] != path[i + 5][0]
-    #             )
-    #         ):
-    #             path.insert((i + 1), (path[i][0], path[i + 1][1]))
-    #             del path[i + 2]  # 2nd block
-    #             i -= 10
-    #             continue
+        # 2 blocks, 90 degrees, 2 blocks = 1 block, 1 block, 1 block
+        if i + 3 < len(path):
+            if (
+                path[i][0] == path[i + 1][0]
+                and path[i + 2][-1] == path[i + 3][-1]
+            ):
+                if len(path[i + 1]) == 3:
+                    path.insert(
+                        (i + 1),
+                        (path[i + 2][0], path[i + 2][1], path[i + 1][-1]),
+                    )
+                else:
+                    path.insert((i + 1), (path[i + 2][0], path[i + 1][-1]))
+                del path[i + 2]  # 2nd block
+                del path[i + 2]  # 3rd block
+                i -= 1
+                continue
+            elif (
+                path[i][-1] == path[i + 1][-1]
+                and path[i + 2][0] == path[i + 3][0]
+            ):
+                if len(path[i + 1]) == 3:
+                    path.insert(
+                        (i + 1),
+                        (path[i + 1][0], path[i + 1][1], path[i + 2][-1]),
+                    )
+                else:
+                    path.insert(
+                        (i + 1),
+                        (path[i + 1][0], path[i + 2][-1]),
+                    )
+                del path[i + 2]  # 2nd block
+                del path[i + 2]  # 3rd block
+                i -= 1
+                continue
 
-    #     i += 1
+        # 1 block, 3 blocks, 1 block = 1 block, 2 blocks, 2 blocks
+        if i - 1 >= 0 and i + 5 <= len(path):
+            if (
+                (
+                    path[i + 1][-1] == path[i + 2][-1]
+                    and path[i + 2][-1] == path[i + 3][-1]
+                )
+                and (
+                    path[i + 1][-1] != path[i][-1]
+                    and path[i + 3][-1] != path[i + 4][-1]
+                )
+                and (
+                    path[i - 1][-1] != path[i][-1]
+                    and path[i + 4][-1] != path[i + 5][-1]
+                )
+            ):
+                if len(path[i]) == 3:
+                    path.insert(
+                        (i + 1), (path[i + 1][0], path[i + 1][1], path[i][-1])
+                    )
+                else:
+                    path.insert((i + 1), (path[i + 1][0], path[i][-1]))
+                del path[i + 2]  # 2nd block
+                i -= 1
+                continue
+            elif (
+                (
+                    path[i + 1][0] == path[i + 2][0]
+                    and path[i + 2][0] == path[i + 3][0]
+                )
+                and (
+                    path[i + 1][0] != path[i][0]
+                    and path[i + 3][0] != path[i + 4][0]
+                )
+                and (
+                    path[i - 1][0] != path[i][0]
+                    and path[i + 4][0] != path[i + 5][0]
+                )
+            ):
+                if len(path[i]) == 3:
+                    path.insert(
+                        (i + 1), (path[i][0], path[i][1], path[i + 1][-1])
+                    )
+                else:
+                    path.insert((i + 1), (path[i][0], path[i + 1][-1]))
+                del path[i + 2]  # 2nd block
+                i -= 1
+                continue
+
+        i += 1
 
     return path
 
@@ -657,7 +687,9 @@ def distance2D(A, B):  # TODO : Can be better.
     return sqrt((B[0] - A[0]) ** 2 + (B[1] - A[1]) ** 2)
 
 
-def curveSurface(points, distance, resolution=7):
+def curveSurface(
+    points, distance, resolution=7, pixelPerfect=False, factor=2
+):  # HERE
     """
     Create a curve with a thickness.
 
@@ -667,13 +699,17 @@ def curveSurface(points, distance, resolution=7):
         resolution (int, optional): Number of blocks that separate each
         point to calculate parallel curves. 0 to use the points calculated to
         create the curve. Defaults to 7.
+        pixelPerfect (bool, optional): True to avoid heaps. Defaults to
+        False.
+        factor (int, optional): Number of sub-line that will be
+        calculated to avoid hole with coordinates. Defaults to 2.
 
     Returns:
         dict: Key 0 is the list of coordinates of the center line.
         Positive keys are lists of coordinates of lines on the right
         side, negative keys are for the left side.
 
-    >>> smoothCurveSurface(
+    >>> curveSurface(
             np.array(
                 [
                     [12, 248, -103],
@@ -728,8 +764,8 @@ def curveSurface(points, distance, resolution=7):
     rightPoints = []
     leftPoints = []
 
-    for i in range(0, distance * 2):
-        rightPoint, leftPoint = curveOffset(X, Y, Z, i / 2)
+    for i in range(0, distance * factor):
+        rightPoint, leftPoint = curveOffset(X, Y, Z, i / factor)
         rightPoints.append(rightPoint)
         leftPoints.append(leftPoint)
 
@@ -745,7 +781,7 @@ def curveSurface(points, distance, resolution=7):
                 line(
                     rightPoints[i][j],
                     rightPoints[i][j + 1],
-                    pixelPerfect=False,
+                    pixelPerfect,
                 )
             )
         rightSide.append(rightLine)
@@ -757,11 +793,24 @@ def curveSurface(points, distance, resolution=7):
                 line(
                     leftPoints[i][j],
                     leftPoints[i][j + 1],
-                    pixelPerfect=False,
+                    pixelPerfect,
                 )
             )
         leftSide.append(leftLine)
         leftLine = []
+
+    # else:  # Do not create lines. Points instead.
+    #     for i in range(len(rightPoints)):
+    #         for j in range(len(rightPoints[i])):
+    #             rightLine.append(rightPoints[i][j])
+    #         rightSide.append(rightLine)
+    #         rightLine = []
+
+    #     for i in range(len(leftPoints)):
+    #         for j in range(len(leftPoints[i])):
+    #             leftLine.append(leftPoints[i][j])
+    #         leftSide.append(leftLine)
+    #         leftLine = []
 
     # Returns. 0 is the center line, positive values ​​are lines on the
     # right, negative values ​​are lines on the left.
@@ -769,10 +818,12 @@ def curveSurface(points, distance, resolution=7):
     smoothCurveSurfaceDict[0] = centerLine
     countLine = 0
     for l in rightSide:
+        l = cleanLine(l)
         countLine += 1
         smoothCurveSurfaceDict[countLine] = l
     countLine = 0
     for l in leftSide:
+        l = cleanLine(l)
         countLine -= 1
         smoothCurveSurfaceDict[countLine] = l
 
@@ -900,3 +951,120 @@ def circle_line_segment_intersection(
             return [intersections[0]]
         else:
             return intersections
+
+
+def circle(xyC, r):
+    """
+    Can be used for circle or disc.
+
+    Args:
+        xyC (tuple): Coordinates of the center.
+        r (int): Radius of the circle.
+
+    Returns:
+        dict: Keys are distance from the circle. Value is a list of all
+        coordinates at this distance. 0 for a circle. Negative values for
+        a disc, positive values for a hole.
+    """
+    area = (
+        (round(xyC[0]) - round(r), round(xyC[1]) - round(r)),
+        (round(xyC[0]) + round(r) + 1, round(xyC[1]) + round(r) + 1),
+    )
+
+    circle = {}
+    for x in range(area[0][0], area[1][0]):
+        for y in range(area[0][1], area[1][1]):
+            d = round(distance2D((x, y), (xyC))) - r
+            if circle.get(d) == None:
+                circle[d] = []
+            circle[d].append((x, y))
+    return circle
+
+
+def circleIntersections(xy0, r0, xy1, r1):
+    # https://stackoverflow.com/questions/55816902/finding-the-intersection-of-two-circles
+    # circle 1: (x0, y0), radius r0
+    # circle 2: (x1, y1), radius r1
+
+    x0, y0 = xy0
+    x1, y1 = xy1
+    d = sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2)
+
+    # non intersecting
+    if d > r0 + r1:
+        return None
+    # One circle within other
+    if d < abs(r0 - r1):
+        return None
+    # coincident circles
+    if d == 0 and r0 == r1:
+        return None
+    else:
+        a = (r0 ** 2 - r1 ** 2 + d ** 2) / (2 * d)
+        h = sqrt(r0 ** 2 - a ** 2)
+        x2 = x0 + a * (x1 - x0) / d
+        y2 = y0 + a * (y1 - y0) / d
+        x3 = x2 + h * (y1 - y0) / d
+        y3 = y2 - h * (x1 - x0) / d
+
+        x4 = x2 - h * (y1 - y0) / d
+        y4 = y2 + h * (x1 - x0) / d
+
+        return ((x3, y3), (x4, y4))
+
+
+def InTriangle(p_test, p0, p1, p2):
+    # https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle#:~:text=A%20simple%20way%20is%20to,point%20is%20inside%20the%20triangle.
+    dX = p_test[0] - p0[0]
+    dY = p_test[1] - p0[1]
+    dX20 = p2[0] - p0[0]
+    dY20 = p2[1] - p0[1]
+    dX10 = p1[0] - p0[0]
+    dY10 = p1[1] - p0[1]
+
+    s_p = (dY20 * dX) - (dX20 * dY)
+    t_p = (dX10 * dY) - (dY10 * dX)
+    D = (dX10 * dY20) - (dY10 * dX20)
+
+    if D > 0:
+        return (s_p >= 0) and (t_p >= 0) and (s_p + t_p) <= D
+    else:
+        return (s_p <= 0) and (t_p <= 0) and (s_p + t_p) >= D
+
+
+def circlePoints(xyC, r, n=100):
+    # https://stackoverflow.com/questions/8487893/generate-all-the-points-on-the-circumference-of-a-circle
+    points = [
+        (cos(2 * pi / n * x) * r, sin(2 * pi / n * x) * r)
+        for x in range(0, n + 1)
+    ]
+
+    for i in range(len(points)):
+        points[i] = (
+            points[i][0] + xyC[0],
+            points[i][1] + xyC[1],
+        )
+
+    return points
+
+
+def optimizedPath(coords, start=None):
+    """
+    This function finds the nearest point to a point
+    coords should be a list in this format coords = [ [x1, y1], [x2, y2] , ...]
+    # https://stackoverflow.com/questions/45829155/sort-points-in-order-to-have-a-continuous-curve-using-python
+    """
+    if start is None:
+        start = coords[0]
+    pass_by = coords
+    path = [start]
+    pass_by.remove(start)
+    while pass_by:
+        nearest = min(pass_by, key=lambda x: distance2D(path[-1], x))
+        path.append(nearest)
+        pass_by.remove(nearest)
+    return path
+
+
+def nearest(points, start):
+    return min(points, key=lambda x: distance2D(start, x))
