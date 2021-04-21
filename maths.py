@@ -224,202 +224,6 @@ def curve(points, number_true_pts=40, debug=False):
     return x, y, z
 
 
-def DELETEsmoothRoads(points):  # TODO: Delete but save cool parts before.
-    """
-    Preset road
-    """
-
-    # Calculating resolution depending of the distance
-    distance = 0
-    for i in range(len(points) - 1):
-        distance += sqrt(
-            ((points[i][0] - points[i + 1][0]) ** 2)
-            + ((points[i][1] - points[i + 1][1]) ** 2)
-            + ((points[i][2] - points[i + 1][2]) ** 2)
-        )
-    num_true_pts = round(distance / 10)
-
-    # Calculation of the main line
-    lineCenter0 = []
-    x, y, z = curve(points, num_true_pts)
-    for i in range(len(x) - 1):
-        pos0 = x[i], y[i], z[i]
-        pos1 = (x[i + 1], y[i + 1], z[i + 1])
-        lineCenter0.extend(mathLine(pos0, pos1))
-        setBlock("green_concrete", (x[i], y[i] + 1, z[i]))
-    # lineCenter = noDuplicates
-    lineCenter = []
-    for i in lineCenter0:
-        if i not in lineCenter:
-            lineCenter.append(i)
-
-    # Find what to do depending of the distance between the road and the ground
-    listCenter = []
-    for i in range(0, len(lineCenter), 7):
-        groundDistance = lineCenter[i][1] - findGround(lineCenter[i])[1]
-
-        if 0 <= groundDistance <= 7:  # remplir jusqu'au sol
-            setBlock("red_concrete", lineCenter[i])
-            listCenter.append(lineCenter[i])
-        if 7 < groundDistance:  # générer pillier
-            setBlock("blue_concrete", lineCenter[i])
-            listCenter.append(lineCenter[i])
-        if -7 <= groundDistance < 0:  # creuser
-            listCenter.append(lineCenter[i])
-        if -7 > groundDistance:  # tunnel
-            listCenter.append(lineCenter[i])
-
-    line0 = []
-    line1 = []
-
-    x = [listCenter[i][0] for i in range(len(listCenter))]
-    y = [listCenter[i][1] for i in range(len(listCenter))]
-    z = [listCenter[i][2] for i in range(len(listCenter))]
-
-    for i in range(0, len(listCenter)):
-        line0, line1 = curveOffset(x, y, z, N=5)
-    for i in range(len(line0)):
-        setBlock("blue_concrete", line0[i])
-        setBlock(
-            "blue_concrete", line1[i]
-        )  # ICI calculer les lignes par section de routes pour déterminer ce qui doit y avoir en dessou ou au dessu. Pour les pilliers, les faire au niveau des calculs de la largeur.
-
-    # Test
-    # line0 = []
-    # line1 = []
-    # road = []
-
-    # for i in range(10):
-    #     lineA,lineB = (smoothCurveOffset(x,y,z, i/2))
-    #     line0.append(lineA)
-    #     line1.append(lineB)
-
-    # for i in range(len(line0)):
-    #     for j in range(len(line0[i])-1):
-    #         road.append(mathLine(line0[i][j], line0[i][j+1], pixelPerfect=False))
-    #         road.append(mathLine(line1[i][j], line1[i][j+1], pixelPerfect=False))
-
-    # for i in range(len(road)):
-    #     for j in range(len(road[i])):
-    #         fillBlock('air', (road[i][j][0], road[i][j][1], road[i][j][2], road[i][j][0], road[i][j][1]+10, road[i][j][2]))
-
-    # for i in range(len(road)):
-    #     for j in range(len(road[i])):
-    #         pos = findGround(road[i][j])
-    #         fillBlock('stone', (road[i][j][0], road[i][j][1], road[i][j][2], pos[0], pos[1]-1, pos[2]))
-    #         ### ICI on en était au pillier
-
-
-def DELETEsmoothCurveSurface(points):  # TODO: Delete.
-    print("test réussi")
-    # TODO: Work in progress. Specific roads inside main?
-
-    # Calculating resolution depending of the distance.
-    distance = 0
-    for i in range(len(points) - 1):
-        distance += sqrt(
-            ((points[i][0] - points[i + 1][0]) ** 2)
-            + ((points[i][1] - points[i + 1][1]) ** 2)
-            + ((points[i][2] - points[i + 1][2]) ** 2)
-        )
-    number_true_pts = round(distance / 10)
-
-    # Calculation of the main line.
-    lineCenter0 = []
-    x, y, z = curve(points, number_true_pts)
-    for i in range(len(x) - 1):
-        pos0 = x[i], y[i], z[i]
-        pos1 = (x[i + 1], y[i + 1], z[i + 1])
-        lineCenter0.extend(line(pos0, pos1))
-
-    # LineCenter = noDuplicates.
-    lineCenter = []
-    for i in lineCenter0:
-        if i not in lineCenter:
-            lineCenter.append(i)
-
-    # Offsetting.
-    listCenter = []
-    for i in range(0, len(lineCenter), 7):
-        listCenter.append(lineCenter[i])
-
-    x = [listCenter[i][0] for i in range(len(listCenter))]
-    y = [listCenter[i][1] for i in range(len(listCenter))]
-    z = [listCenter[i][2] for i in range(len(listCenter))]
-
-    N = 5
-    line0 = []
-    line1 = []
-
-    for i in range(0, N * 2):
-        lineA, lineB = curveOffset(x, y, z, i / 2)
-        line0.append(lineA)
-        line1.append(lineB)
-
-    roadA = []
-    roadB = []
-    road1 = []
-    road0 = []
-
-    # Parsing.
-    for i in range(len(line0[0]) - 1):
-        # line0[0][0],line0[1][0],line0[2][0]... line0[0][1],line0[1][1],line0[2][1]
-        for j in range(len(line0)):
-            roadA.append(
-                line(line0[j][i], line0[j][i + 1], pixelPerfect=False)
-            )
-            roadB.append(
-                line(line1[j][i], line1[j][i + 1], pixelPerfect=False)
-            )
-        road0.append(roadA)
-        road1.append(roadB)
-        roadA = []
-        roadB = []
-
-    eee = []
-    for i in range(len(road0)):  # pour toute les parcelles
-        # Find what to do depending of the distance between the road and the ground
-        groundDistance = (
-            listCenter[i + 1][1] - findGround(listCenter[i + 1])[1]
-        )
-        eee.append(groundDistance)
-
-        if 0 <= groundDistance <= 7:  # remplir jusqu'au sol
-            minecraft.setBlock(
-                "red_concrete",
-                (listCenter[i][0], listCenter[i][1] + 3, listCenter[i][2]),
-            )
-        if 7 < groundDistance:  # générer pillier
-            main.setBlock(
-                "blue_concrete",
-                (listCenter[i][0], listCenter[i][1] + 3, listCenter[i][2]),
-            )
-        if -7 <= groundDistance < 0:  # creuser
-            pass
-        if -7 > groundDistance:  # tunnel
-            pass
-
-        for j in range(len(road1[i])):  # pour toutes les lignes
-            for k in range(len(road1[i][j])):  # pour tous les blocks
-                main.setBlock("white_concrete", road1[i][j][k])
-                if 0 <= groundDistance <= 7:  # remplir jusqu'au sol
-                    main.fillBlock(
-                        "black_concrete",
-                        (
-                            road1[i][j][k][0],
-                            road1[i][j][k][1],
-                            road1[i][j][k][2],
-                            road1[i][j][k][0],
-                            road1[i][j][k][1] - groundDistance,
-                            road1[i][j][k][2],
-                        ),
-                    )
-    print(eee)
-    print(listCenter)
-    # ICI améliroer la précision du fill et continuer les autres options
-    # vérifier distance ground pour chaque pair qui encadre la parcelle. Si une des deux est == void alors ne rien mettre, si les 2 == fill alors fill
-
-
 def curveOffset(x, y, z, distance=5):
     """
     Offset a curve.
@@ -568,7 +372,7 @@ def pixelPerfect(path):
 
 def cleanLine(path):  # HERE
     """
-    Clean and smooth a list of blocks.
+    Clean and smooth a list of blocks. Works in 2d but supports 3d.
 
     Args:
         path (list): List of blocks.
@@ -577,8 +381,7 @@ def cleanLine(path):  # HERE
         list: List cleaned.
 
     TODO:
-        Do not work perfecly since 16/04/2021.
-        Add 3D. 3D Supported but not used. 16/04/2021.
+        Do not work perfectly since 16/04/2021.
         Add new patterns.
         Problem with i -= 10 : solved but not understand why. 16/04/2021.
     """
@@ -688,7 +491,13 @@ def distance2D(A, B):  # TODO : Can be better.
 
 
 def curveSurface(
-    points, distance, resolution=7, pixelPerfect=False, factor=2
+    points,
+    distance,
+    resolution=7,
+    pixelPerfect=False,
+    factor=2,
+    start=0,
+    returnLine=True,
 ):  # HERE
     """
     Create a curve with a thickness.
@@ -726,23 +535,36 @@ def curveSurface(
         )
     """
 
-    # Calculate resolution of the main curve depending of the total curve length.
-    lenCurve = 0
-    for i in range(len(points) - 1):
-        lenCurve += sqrt(
-            ((points[i][0] - points[i + 1][0]) ** 2)
-            + ((points[i][1] - points[i + 1][1]) ** 2)
-            + ((points[i][2] - points[i + 1][2]) ** 2)
-        )
-    number_true_pts = round(lenCurve / 10)
+    if len((points)) >= 3:
+        # Calculate resolution of the main curve depending of the total curve length.
+        lenCurve = 0
+        for i in range(len(points) - 1):
+            lenCurve += sqrt(
+                ((points[i][0] - points[i + 1][0]) ** 2)
+                + ((points[i][1] - points[i + 1][1]) ** 2)
+                + ((points[i][2] - points[i + 1][2]) ** 2)
+            )
+        number_true_pts = round(lenCurve / 10)
 
-    # Calculate the main line.
+        # Calculate the main line.
+        X, Y, Z = curve(points, number_true_pts)
+    else:
+        X, Y, Z = (
+            (points[0][0], points[1][0]),
+            (points[0][1], points[1][1]),
+            (points[0][2], points[1][2]),
+        )
+
     centerLineTemp = []
-    X, Y, Z = curve(points, number_true_pts)
     for i in range(len(X) - 1):
         xyz0 = X[i], Y[i], Z[i]
         xyz1 = (X[i + 1], Y[i + 1], Z[i + 1])
         centerLineTemp.extend(line(xyz0, xyz1))
+
+    if not returnLine:
+        returnPoints = []
+        for i in range(len(X)):
+            returnPoints.append((round(X[i]), round(Y[i]), round(Z[i])))
 
     # Clean the main line.
     centerLine = cleanLine(centerLineTemp)
@@ -764,58 +586,62 @@ def curveSurface(
     rightPoints = []
     leftPoints = []
 
-    for i in range(0, distance * factor):
+    for i in range(start * factor, distance * factor):
         rightPoint, leftPoint = curveOffset(X, Y, Z, i / factor)
         rightPoints.append(rightPoint)
         leftPoints.append(leftPoint)
 
-    # Creating lines on each side between each point.
     rightLine = []
     leftLine = []
     rightSide = []
     leftSide = []
 
-    for i in range(len(rightPoints)):
-        for j in range(len(rightPoints[i]) - 1):
-            rightLine.extend(
-                line(
-                    rightPoints[i][j],
-                    rightPoints[i][j + 1],
-                    pixelPerfect,
+    if returnLine == True:  # Creating lines on each side between each point.
+        for i in range(len(rightPoints)):
+            for j in range(len(rightPoints[i]) - 1):
+                rightLine.extend(
+                    line(
+                        rightPoints[i][j],
+                        rightPoints[i][j + 1],
+                        pixelPerfect,
+                    )
                 )
-            )
-        rightSide.append(rightLine)
-        rightLine = []
+            rightSide.append(rightLine)
+            rightLine = []
 
-    for i in range(len(leftPoints)):
-        for j in range(len(leftPoints[i]) - 1):
-            leftLine.extend(
-                line(
-                    leftPoints[i][j],
-                    leftPoints[i][j + 1],
-                    pixelPerfect,
+        for i in range(len(leftPoints)):
+            for j in range(len(leftPoints[i]) - 1):
+                leftLine.extend(
+                    line(
+                        leftPoints[i][j],
+                        leftPoints[i][j + 1],
+                        pixelPerfect,
+                    )
                 )
-            )
-        leftSide.append(leftLine)
-        leftLine = []
+            leftSide.append(leftLine)
+            leftLine = []
 
-    # else:  # Do not create lines. Points instead.
-    #     for i in range(len(rightPoints)):
-    #         for j in range(len(rightPoints[i])):
-    #             rightLine.append(rightPoints[i][j])
-    #         rightSide.append(rightLine)
-    #         rightLine = []
+    else:  # Do not create lines. Points instead.
+        for i in range(len(rightPoints)):
+            for j in range(len(rightPoints[i])):
+                rightLine.append(rightPoints[i][j])
+            rightSide.append(rightLine)
+            rightLine = []
 
-    #     for i in range(len(leftPoints)):
-    #         for j in range(len(leftPoints[i])):
-    #             leftLine.append(leftPoints[i][j])
-    #         leftSide.append(leftLine)
-    #         leftLine = []
+        for i in range(len(leftPoints)):
+            for j in range(len(leftPoints[i])):
+                leftLine.append(leftPoints[i][j])
+            leftSide.append(leftLine)
+            leftLine = []
 
     # Returns. 0 is the center line, positive values ​​are lines on the
     # right, negative values ​​are lines on the left.
     smoothCurveSurfaceDict = {}
-    smoothCurveSurfaceDict[0] = centerLine
+    if returnLine:
+        smoothCurveSurfaceDict[0] = centerLine
+    else:
+        smoothCurveSurfaceDict[0] = returnPoints
+
     countLine = 0
     for l in rightSide:
         l = cleanLine(l)
@@ -830,39 +656,41 @@ def curveSurface(
     return smoothCurveSurfaceDict
 
 
-def getAngle(p0, p1, p2):
+def getAngle(xy0, xy1, xy2):
     """
-    Compute angle (in degrees) for p0p1p2 corner.
+    Compute angle (in degrees) for xy0, xy1, xy2 corner.
 
     https://stackoverflow.com/questions/13226038/calculating-angle-between-two-vectors-in-python
 
     Args:
-        p0 (numpy.ndarray: Points in the form of [x,y].
-        p1 (numpy.ndarray: Points in the form of [x,y].
-        p2 (numpy.ndarray: Points in the form of [x,y].
+        xy0 (numpy.ndarray): Points in the form of [x,y].
+        xy1 (numpy.ndarray): Points in the form of [x,y].
+        xy2 (numpy.ndarray): Points in the form of [x,y].
 
     Returns:
         float: Angle negative for counterclockwise angle, angle positive
         for counterclockwise angle.
     """
-    if p2 is None:
-        p2 = p1 + np.array([1, 0])
-    v0 = np.array(p0) - np.array(p1)
-    v1 = np.array(p2) - np.array(p1)
+    if xy2 is None:
+        xy2 = xy1 + np.array([1, 0])
+    v0 = np.array(xy0) - np.array(xy1)
+    v1 = np.array(xy2) - np.array(xy1)
 
     angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
     return np.degrees(angle)
 
 
-def lineIntersection(line0, line1):
+def lineIntersection(line0, line1, fullLine=True):
     """
-    Find (or not) intersection between two lines.
+    Find (or not) intersection between two lines. Works in 2d but supports 3d.
 
     https://stackoverflow.com/questions/20677795/how-do-i-compute-the-intersection-point-of-two-lines
 
     Args:
         line0 (tuple): Tuple of tuple of coordinates.
         line1 (tuple): Tuple of tuple of coordinates.
+        fullLine (bool, optional): True to find intersections along
+        full line - not just in the segment.
 
     Returns:
         tuple: Coordinates.
@@ -870,10 +698,10 @@ def lineIntersection(line0, line1):
     >>> lineIntersection(((0, 0), (0, 5)), ((2.5, 2.5), (-2.5, 2.5)))
     """
     xdiff = (line0[0][0] - line0[1][0], line1[0][0] - line1[1][0])
-    ydiff = (line0[0][1] - line0[1][1], line1[0][1] - line1[1][1])
+    ydiff = (line0[0][-1] - line0[1][-1], line1[0][-1] - line1[1][-1])
 
     def det(a, b):
-        return a[0] * b[1] - a[1] * b[0]
+        return a[0] * b[-1] - a[-1] * b[0]
 
     div = det(xdiff, ydiff)
     if div == 0:
@@ -882,39 +710,61 @@ def lineIntersection(line0, line1):
     d = (det(*line0), det(*line1))
     x = det(d, xdiff) / div
     y = det(d, ydiff) / div
-    return x, y
+
+    if not fullLine:
+        if (
+            min(line0[0][0], line0[1][0]) <= x <= max(line0[0][0], line0[1][0])
+            and min(line1[0][0], line1[1][0])
+            <= x
+            <= max(line1[0][0], line1[1][0])
+            and min(line0[0][-1], line0[1][-1])
+            <= y
+            <= max(line0[0][-1], line0[1][-1])
+            and min(line1[0][-1], line1[1][-1])
+            <= y
+            <= max(line1[0][-1], line1[1][-1])
+        ):
+            return x, y
+        else:
+            return None
+    else:
+        return x, y
 
 
-def circle_line_segment_intersection(
-    circle_center, circle_radius, pt1, pt2, full_line=True, tangent_tol=1e-9
+def circleLineSegmentIntersection(
+    circleCenter, circleRadius, xy0, xy1, fullLine=True, tangentTol=1e-9
 ):
     """
     Find the points at which a circle intersects a line-segment. This
-    can happen at 0, 1, or 2 points.
+    can happen at 0, 1, or 2 points. Works in 2d but supports 3d.
 
     https://stackoverflow.com/questions/30844482/what-is-most-efficient-way-to-find-the-intersection-of-a-line-and-a-circle-in-py
     Note: We follow: http://mathworld.wolfram.com/Circle-LineIntersection.html
 
     Args:
-        circle_center ([type]): The (x, y) location of the circle center.
-        circle_radius ([type]): The radius of the circle.
-        pt1 ([type]): The (x, y) location of the first point of the segment.
-        pt2 ([type]): The (x, y) location of the second point of the segment.
-        full_line (bool, optional): True to find intersections along
+        circleCenter (tuple): The (x, y) location of the circle center.
+        circleRadius (int): The radius of the circle.
+        xy0 (tuple): The (x, y) location of the first point of the segment.
+        xy1 ([tuple]): The (x, y) location of the second point of the segment.
+        fullLine (bool, optional): True to find intersections along
         full line - not just in the segment.  False will just return
         intersections within the segment. Defaults to True.
-        tangent_tol ([type], optional): Numerical tolerance at which we decide the intersections are close enough to consider it a tangent. Defaults to 1e-9.
+        tangentTol (float, optional): Numerical tolerance at which we decide the intersections are close enough to consider it a tangent. Defaults to 1e-9.
 
     Returns:
         list: A list of length 0, 1, or 2, where each element is a point at which the circle intercepts a line segment.
     """
 
-    (p1x, p1y), (p2x, p2y), (cx, cy) = pt1, pt2, circle_center
+    (p1x, p1y), (p2x, p2y), (cx, cy) = (
+        (xy0[0], xy0[-1]),
+        (xy1[0], xy1[-1]),
+        (circleCenter[0], circleCenter[1]),
+    )
     (x1, y1), (x2, y2) = (p1x - cx, p1y - cy), (p2x - cx, p2y - cy)
     dx, dy = (x2 - x1), (y2 - y1)
     dr = (dx ** 2 + dy ** 2) ** 0.5
     big_d = x1 * y2 - x2 * y1
-    discriminant = circle_radius ** 2 * dr ** 2 - big_d ** 2
+    discriminant = circleRadius ** 2 * dr ** 2 - big_d ** 2
 
     if discriminant < 0:  # No intersection between circle and line
         return []
@@ -934,7 +784,7 @@ def circle_line_segment_intersection(
             for sign in ((1, -1) if dy < 0 else (-1, 1))
         ]  # This makes sure the order along the segment is correct
         if (
-            not full_line
+            not fullLine
         ):  # If only considering the segment, filter out intersections that do not fall within the segment
             fraction_along_segment = [
                 (xi - p1x) / dx if abs(dx) > abs(dy) else (yi - p1y) / dy
@@ -946,7 +796,7 @@ def circle_line_segment_intersection(
                 if 0 <= frac <= 1
             ]
         if (
-            len(intersections) == 2 and abs(discriminant) <= tangent_tol
+            len(intersections) == 2 and abs(discriminant) <= tangentTol
         ):  # If line is tangent to circle, return just one point (as both intersections have same location)
             return [intersections[0]]
         else:
@@ -983,20 +833,18 @@ def circle(xyC, r):
 
 def circleIntersections(xy0, r0, xy1, r1):
     # https://stackoverflow.com/questions/55816902/finding-the-intersection-of-two-circles
-    # circle 1: (x0, y0), radius r0
-    # circle 2: (x1, y1), radius r1
 
     x0, y0 = xy0
     x1, y1 = xy1
     d = sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2)
 
-    # non intersecting
+    # Non intersecting.
     if d > r0 + r1:
         return None
-    # One circle within other
+    # One circle within other.
     if d < abs(r0 - r1):
         return None
-    # coincident circles
+    # Coincident circles.
     if d == 0 and r0 == r1:
         return None
     else:
@@ -1013,14 +861,14 @@ def circleIntersections(xy0, r0, xy1, r1):
         return ((x3, y3), (x4, y4))
 
 
-def InTriangle(p_test, p0, p1, p2):
+def InTriangle(point, xy0, xy1, xy2):
     # https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle#:~:text=A%20simple%20way%20is%20to,point%20is%20inside%20the%20triangle.
-    dX = p_test[0] - p0[0]
-    dY = p_test[1] - p0[1]
-    dX20 = p2[0] - p0[0]
-    dY20 = p2[1] - p0[1]
-    dX10 = p1[0] - p0[0]
-    dY10 = p1[1] - p0[1]
+    dX = point[0] - xy0[0]
+    dY = point[1] - xy0[1]
+    dX20 = xy2[0] - xy0[0]
+    dY20 = xy2[1] - xy0[1]
+    dX10 = xy1[0] - xy0[0]
+    dY10 = xy1[1] - xy0[1]
 
     s_p = (dY20 * dX) - (dX20 * dY)
     t_p = (dX10 * dY) - (dY10 * dX)
@@ -1049,11 +897,7 @@ def circlePoints(xyC, r, n=100):
 
 
 def optimizedPath(coords, start=None):
-    """
-    This function finds the nearest point to a point
-    coords should be a list in this format coords = [ [x1, y1], [x2, y2] , ...]
     # https://stackoverflow.com/questions/45829155/sort-points-in-order-to-have-a-continuous-curve-using-python
-    """
     if start is None:
         start = coords[0]
     pass_by = coords
@@ -1068,3 +912,126 @@ def optimizedPath(coords, start=None):
 
 def nearest(points, start):
     return min(points, key=lambda x: distance2D(start, x))
+
+
+def sortRotation(points):
+    """
+    Sort point in a rotation order. Works in 2d but supports 3d.
+
+    https://stackoverflow.com/questions/58377015/counterclockwise-sorting-of-x-y-data
+
+    Args:
+        points: List of points to sort in the form of [(x, y, z), (x, y,
+        z)] or [(x, y), (x, y), (x, y), (x, y)]...
+
+    Returns:
+        list: List of tuples of coordinates sorted.
+
+    >>> sortRotation([(0, 45, 100), (4, -5, 5),(-5, 36, -2)])
+    [(0, 45, 100), (-5, 36, -2), (4, -5, 5)]
+    """
+    x, y = [], []
+    for i in range(len(points)):
+        x.append(points[i][0])
+        y.append(points[i][-1])
+    x, y = np.array(x), np.array(y)
+
+    x0 = np.mean(x)
+    y0 = np.mean(y)
+
+    r = np.sqrt((x - x0) ** 2 + (y - y0) ** 2)
+
+    angles = np.where(
+        (y - y0) > 0,
+        np.arccos((x - x0) / r),
+        2 * np.pi - np.arccos((x - x0) / r),
+    )
+
+    mask = np.argsort(angles)
+
+    x_sorted = list(x[mask])
+    y_sorted = list(y[mask])
+
+    # Rearrange tuples to get the right coordinates.
+    sortedPoints = []
+    for i in range(len(points)):
+        j = 0
+        while (x_sorted[i] != points[j][0]) and (y_sorted[i] != points[j][-1]):
+            j += 1
+        else:
+            if len(points[0]) == 3:
+                sortedPoints.append((x_sorted[i], points[j][1], y_sorted[i]))
+            else:
+                sortedPoints.append((x_sorted[i], y_sorted[i]))
+
+    return sortedPoints
+
+
+def curveCornerIntersection(
+    line0, line1, startDistance, angleAdaptation=False
+):
+    """
+    Create points between the two lines to smooth the intersection.
+
+    This function was created in order to generate roads intersections.
+
+    Args:
+        line0 (tuple): Tuple of tuple. Line coordinates. Order matters.
+        line1 (tuple): Tuple of tuple. Line coordinates. Order matters.
+        startDistance (int): distance from the intersection where the
+        curve should starts.
+        angleAdaptation (bool, optional): True will adapt the
+        startDistance depending of the angle between the two lines.
+        False will force the distance to be startDistance. Defaults to
+        False.
+
+    Returns:
+        [list]: List of tuple of coordinates (2d) that forms the curve.
+        Starts on the line and end on the other line.
+
+    >>> curveCornerIntersection(((0, 0), (50, 20)), ((-5, 50), (25, -5)), 10)
+    """
+    intersection = lineIntersection(line0, line1, fullLine=True)
+
+    if intersection == None:
+        return None
+
+    # Define automatically the distance from the intersection, where the curve
+    # starts.
+    if angleAdaptation:
+        angle = getAngle(line0[0], intersection, line1[0])
+        # Set here the radius of the circle for a square angle.
+        startDistance = startDistance * abs(1 / (angle / 90))
+
+    startCurvePoint = circleLineSegmentIntersection(
+        intersection, startDistance, line0[0], intersection, fullLine=True
+    )[0]
+    endCurvePoint = circleLineSegmentIntersection(
+        intersection, startDistance, line1[0], intersection, fullLine=True
+    )[0]
+    # Higher value for better precision
+    perpendicular0 = perpendicular(10e3, startCurvePoint, intersection)[0]
+    perpendicular1 = perpendicular(10e3, endCurvePoint, intersection)[1]
+
+    center = lineIntersection(
+        (perpendicular0, startCurvePoint), (perpendicular1, endCurvePoint)
+    )
+
+    # Distance with startCurvePoint and endCurvePoint from the center are the
+    # same.
+    radius = distance2D(startCurvePoint, center)
+
+    circle = circlePoints(
+        center, round(radius), n=round((2 * pi * radius) / 4)
+    )
+
+    # Find the correct point on the circle.
+    curveCornerPointsTemp = [startCurvePoint]
+    for point in circle:
+        if InTriangle(point, intersection, startCurvePoint, endCurvePoint):
+            curveCornerPointsTemp.append(point)
+    curveCornerPointsTemp.append(endCurvePoint)
+
+    # Be sure that all the points are in correct order.
+    curveCornerPoints = optimizedPath(curveCornerPointsTemp, startCurvePoint)
+    return curveCornerPoints

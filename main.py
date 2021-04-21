@@ -3,7 +3,7 @@ import numpy as np
 from worldLoader import WorldSlice
 import maths
 
-USE_BATCHING = True
+USE_BATCHING = False
 
 
 def setBlock(block, xyz):
@@ -30,7 +30,7 @@ def setLine(block, xyz0, xyz1, pixelPerfect=True):
         setBlock(block, (i[0], i[1], i[2]))
 
 
-def setCurveSurface(block, points, distance):  # HERE
+def setCurveSurface(block, points, distance):  # TODO: Delete ?
     """
     Create a curve with a thickness inside Minecraft.
 
