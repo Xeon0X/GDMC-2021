@@ -300,96 +300,146 @@ def roadIntersection(line0, line1, y=140):  # TODO: Refactoring
     # print(maths.getAngle(intersection, endCurvePoint, center))
     # print(maths.getAngle(intersection, startCurvePoint, center))
 
+    # def DELETEintersection(centerPoint, roads):  # (x, y, z), {}
+    # # backroads : [{"coordinates": ((x, y, z)), "width": 3, "blocks":{"road_surface": {"andesite": 3, "stone": 6, "cobblestone": 1}, "median_strip": {"stone": 1}}}}
+    # mainPoints = (
+    #     roads.get("main")["coordinates"][0],
+    #     centerPoint,
+    #     roads.get("main")["coordinates"][1],
+    # )
+    # mainWidth = roads.get("main")["width"]
+    # mainRoad = maths.curveSurface(
+    #     np.array(mainPoints),
+    #     mainWidth,
+    #     resolution=0,
+    #     start=mainWidth - 1,
+    #     factor=1,
+    #     returnLine=False,
+    # )
 
-    def DELETEintersection(centerPoint, roads):  # (x, y, z), {}
-    # backroads : [{"coordinates": ((x, y, z)), "width": 3, "blocks":{"road_surface": {"andesite": 3, "stone": 6, "cobblestone": 1}, "median_strip": {"stone": 1}}}}
-    mainPoints = (
-        roads.get("main")["coordinates"][0],
-        centerPoint,
-        roads.get("main")["coordinates"][1],
-    )
-    mainWidth = roads.get("main")["width"]
-    mainRoad = maths.curveSurface(
-        np.array(mainPoints),
-        mainWidth,
-        resolution=0,
-        start=mainWidth - 1,
-        factor=1,
-        returnLine=False,
-    )
+    # backroadsRoad = []
+    # for i in range(len(roads.get("backroads"))):
+    #     backroadsPoints = (
+    #         roads.get("backroads")[i]["coordinates"],
+    #         centerPoint,
+    #     )
+    #     backroadsWidth = roads.get("backroads")[i]["width"]
+    #     backroadsRoad.append(
+    #         maths.curveSurface(
+    #             np.array(backroadsPoints),
+    #             backroadsWidth,
+    #             resolution=0,
+    #             start=backroadsWidth - 1,
+    #             factor=1,
+    #             returnLine=False,
+    #         )
+    #     )
 
-    backroadsRoad = []
-    for i in range(len(roads.get("backroads"))):
-        backroadsPoints = (
-            roads.get("backroads")[i]["coordinates"],
-            centerPoint,
+    # intersections = []
+    # for i in range(len(backroadsRoad)):
+    #     for j in range(len(mainRoad[1]) - 1):
+    #         line0 = backroadsRoad[i][-1][0], backroadsRoad[i][-1][-1]
+    #         line1 = mainRoad[1][j], mainRoad[1][j + 1]
+    #         intersection = maths.lineIntersection(line0, line1, fullLine=True)
+    #         print(line0, line1)
+    #         if intersection != None:
+    #             intersections.append(((line1), (line0)))
+    #             main.setBlock(
+    #                 "yellow_concrete",
+    #                 (
+    #                     mainRoad[1][j][0],
+    #                     mainRoad[1][j][1] + 2,
+    #                     mainRoad[1][j][2],
+    #                 ),
+    #             )
+    #             main.setBlock(
+    #                 "white_concrete",
+    #                 (
+    #                     round(intersection[0]),
+    #                     101,
+    #                     round(intersection[1]),
+    #                 ),
+    #             )
+    # print(intersections)
+    # print(intersections[0][0], intersections[0][1])
+    # roadIntersection(
+    #     (
+    #         (intersections[0][0][0][0], intersections[0][0][0][-1]),
+    #         (intersections[0][0][1][0], intersections[0][0][1][-1]),
+    #     ),
+    #     (
+    #         (intersections[0][1][1][0], intersections[0][1][1][-1]),
+    #         (intersections[0][1][0][0], intersections[0][1][0][-1]),
+    #     ),
+    #     y=110,
+    # )
+    # roadIntersection(
+    #     (
+    #         (intersections[-1][0][1][0], intersections[-1][0][1][-1]),
+    #         (intersections[-1][0][0][0], intersections[-1][0][0][-1]),
+    #     ),
+    #     (
+    #         (intersections[-1][1][1][0], intersections[-1][1][1][-1]),
+    #         (intersections[-1][1][0][0], intersections[-1][1][0][-1]),
+    #     ),
+    #     y=110,
+    # )
+
+    # for i in range(len(backroadsRoad)):
+    #     for lane in backroadsRoad[i]:
+    #         for xyz in backroadsRoad[i][lane]:
+    #             main.setBlock("red_concrete", xyz)
+    # for lane in mainRoad:
+    #     for xyz in mainRoad[lane]:
+    #         main.setBlock("purple_concrete", xyz)
+
+
+def setCurveSurface(block, points, distance):  # TODO: Delete ?
+    """
+    Create a curve with a thickness inside Minecraft.
+
+    Args:
+        block (str): Minecraft block.
+        points (numpy.ndarray): Points where the curve should go.
+        distance (int): Thickness.
+
+    >>> setCurveSurface(
+            "minecraft:stone",
+            np.array(
+                [
+                    [-19, 71 + 25, -174],
+                    [-3, 75 + 15, -291],
+                    [8, 79 + 25, -279],
+                    [12, 69 + 15, -270],
+                    [0, 63 + 25, -248],
+                ]
+            ),
+            5,
         )
-        backroadsWidth = roads.get("backroads")[i]["width"]
-        backroadsRoad.append(
-            maths.curveSurface(
-                np.array(backroadsPoints),
-                backroadsWidth,
-                resolution=0,
-                start=backroadsWidth - 1,
-                factor=1,
-                returnLine=False,
-            )
-        )
 
-    intersections = []
-    for i in range(len(backroadsRoad)):
-        for j in range(len(mainRoad[1]) - 1):
-            line0 = backroadsRoad[i][-1][0], backroadsRoad[i][-1][-1]
-            line1 = mainRoad[1][j], mainRoad[1][j + 1]
-            intersection = maths.lineIntersection(line0, line1, fullLine=True)
-            print(line0, line1)
-            if intersection != None:
-                intersections.append(((line1), (line0)))
-                main.setBlock(
-                    "yellow_concrete",
-                    (
-                        mainRoad[1][j][0],
-                        mainRoad[1][j][1] + 2,
-                        mainRoad[1][j][2],
-                    ),
-                )
-                main.setBlock(
-                    "white_concrete",
-                    (
-                        round(intersection[0]),
-                        101,
-                        round(intersection[1]),
-                    ),
-                )
-    print(intersections)
-    print(intersections[0][0], intersections[0][1])
-    roadIntersection(
-        (
-            (intersections[0][0][0][0], intersections[0][0][0][-1]),
-            (intersections[0][0][1][0], intersections[0][0][1][-1]),
-        ),
-        (
-            (intersections[0][1][1][0], intersections[0][1][1][-1]),
-            (intersections[0][1][0][0], intersections[0][1][0][-1]),
-        ),
-        y=110,
-    )
-    roadIntersection(
-        (
-            (intersections[-1][0][1][0], intersections[-1][0][1][-1]),
-            (intersections[-1][0][0][0], intersections[-1][0][0][-1]),
-        ),
-        (
-            (intersections[-1][1][1][0], intersections[-1][1][1][-1]),
-            (intersections[-1][1][0][0], intersections[-1][1][0][-1]),
-        ),
-        y=110,
-    )
+    TODO:
+        Fix USE_BATCHING = True : end blocks are not correct.
+        Finish the function.
 
-    for i in range(len(backroadsRoad)):
-        for lane in backroadsRoad[i]:
-            for xyz in backroadsRoad[i][lane]:
-                main.setBlock("red_concrete", xyz)
-    for lane in mainRoad:
-        for xyz in mainRoad[lane]:
-            main.setBlock("purple_concrete", xyz)
+    """
+    curve = maths.curveSurface(points, distance, resolution=0)
+    for lane in curve:
+        for xyz in curve[lane]:
+            setBlock("stone", xyz)
+    for lane in curve:
+        c = 0
+        for xyz in curve[lane]:
+            c += 1
+            if lane == 0:
+                if c % 3 != 0:
+                    setBlock("white_concrete", xyz)
+            if lane == 8:
+                setBlock("white_concrete", (xyz[0], xyz[1], xyz[2]))
+            if lane == -8:
+                setBlock("yellow_concrete", xyz)
+            if lane == -7:
+                setBlock("red_concrete", xyz)
+            if lane == -6:
+                setBlock("yellow_concrete", xyz)
+            if lane == -10:
+                setBlock("red_concrete", xyz)

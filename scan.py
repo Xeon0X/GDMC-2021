@@ -324,7 +324,7 @@ def skeletonize(image):
     cv2.destroyAllWindows()
 
 
-heightmap((-141, -160), (230, 600))
+heightmap((-524, -524), (524, 524))
 # sobel("heightmap.png")
 # edge("heightmap_sobel.png")
 # sobel("heightmap_edge.png")

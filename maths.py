@@ -544,7 +544,7 @@ def curveSurface(
                 + ((points[i][1] - points[i + 1][1]) ** 2)
                 + ((points[i][2] - points[i + 1][2]) ** 2)
             )
-        number_true_pts = round(lenCurve / 10)
+        number_true_pts = round(lenCurve / 6)
 
         # Calculate the main line.
         X, Y, Z = curve(points, number_true_pts)
@@ -644,12 +644,12 @@ def curveSurface(
 
     countLine = 0
     for l in rightSide:
-        l = cleanLine(l)
+        # l = cleanLine(l)
         countLine += 1
         smoothCurveSurfaceDict[countLine] = l
     countLine = 0
     for l in leftSide:
-        l = cleanLine(l)
+        # l = cleanLine(l)
         countLine -= 1
         smoothCurveSurfaceDict[countLine] = l
 
@@ -693,7 +693,7 @@ def lineIntersection(line0, line1, fullLine=True):
         full line - not just in the segment.
 
     Returns:
-        tuple: Coordinates.
+        tuple: Coordinates (2d).
 
     >>> lineIntersection(((0, 0), (0, 5)), ((2.5, 2.5), (-2.5, 2.5)))
     """
@@ -752,7 +752,8 @@ def circleLineSegmentIntersection(
         tangentTol (float, optional): Numerical tolerance at which we decide the intersections are close enough to consider it a tangent. Defaults to 1e-9.
 
     Returns:
-        list: A list of length 0, 1, or 2, where each element is a point at which the circle intercepts a line segment.
+        list: A list of length 0, 1, or 2, where each element is a point
+        at which the circle intercepts a line segment (2d).
     """
 
     (p1x, p1y), (p2x, p2y), (cx, cy) = (
@@ -925,7 +926,7 @@ def sortRotation(points):
         z)] or [(x, y), (x, y), (x, y), (x, y)]...
 
     Returns:
-        list: List of tuples of coordinates sorted.
+        list: List of tuples of coordinates sorted (2d or 3d).
 
     >>> sortRotation([(0, 45, 100), (4, -5, 5),(-5, 36, -2)])
     [(0, 45, 100), (-5, 36, -2), (4, -5, 5)]
@@ -999,7 +1000,11 @@ def curveCornerIntersection(
     # Define automatically the distance from the intersection, where the curve
     # starts.
     if angleAdaptation:
-        angle = getAngle(line0[0], intersection, line1[0])
+        angle = getAngle(
+            (line0[0][0], line0[0][-1]),
+            intersection,
+            (line1[0][0], line1[0][-1]),
+        )
         # Set here the radius of the circle for a square angle.
         startDistance = startDistance * abs(1 / (angle / 90))
 
@@ -1022,8 +1027,8 @@ def curveCornerIntersection(
     radius = distance2D(startCurvePoint, center)
 
     circle = circlePoints(
-        center, round(radius), n=round((2 * pi * radius) / 4)
-    )
+        center, round(radius), 32
+    )  # n=round((2 * pi * radius) / 32)
 
     # Find the correct point on the circle.
     curveCornerPointsTemp = [startCurvePoint]
@@ -1035,3 +1040,13 @@ def curveCornerIntersection(
     # Be sure that all the points are in correct order.
     curveCornerPoints = optimizedPath(curveCornerPointsTemp, startCurvePoint)
     return curveCornerPoints
+
+
+def middleLine(xyz0, xyz1):
+    x = (xyz0[0] + xyz1[0]) / 2
+    z = (xyz0[-1] + xyz1[-1]) / 2
+    if len(xyz0) <= 2:
+        return (x, z)
+    else:
+        y = (xyz0[1] + xyz1[1]) / 2
+        return (round(x), round(y), round(z))
