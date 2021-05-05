@@ -177,7 +177,7 @@ def singleLane2(XYZ, blocks=standard_modern_lane_composition):
 ############################ Roads Generator ###########################
 
 
-class Road:
+class RoadCurve:
     def __init__(self, roadData, XYZ):
         """Create points that forms the lanes depending of the roadData."""
         self.roadData = roadData
@@ -219,7 +219,7 @@ class Road:
         return lanesDict
 
 
-def intersection(roadsData, centerPoint, mainRoads, sideRoads):
+def DELETEintersection(roadsData, centerPoint, mainRoads, sideRoads):
     """
     [summary]
 
@@ -236,7 +236,7 @@ def intersection(roadsData, centerPoint, mainRoads, sideRoads):
 
     # Set the side roads.
     for i in roadsData["sideRoads"]:
-        sideRoad = Road(
+        sideRoad = RoadCurve(
             roadsData["sideRoads"].get(i), (sideRoads.get(i), centerPoint)
         )
         sideRoad.setLanes()
@@ -244,18 +244,18 @@ def intersection(roadsData, centerPoint, mainRoads, sideRoads):
 
     # Set the main roads.
     for i in roadsData["mainRoads"]:
-        mainRoad = Road(
+        mainRoad = RoadCurve(
             roadsData["mainRoads"].get(i), (mainRoads.get(i)[0], centerPoint)
         )
         mainRoad.setLanes()
         lanes[mainRoads[i][0]] = mainRoad.getLanes()
         # We don't want to inverse the orientation of the main road.
-        mainRoad = Road(
+        mainRoad = RoadCurve(
             roadsData["mainRoads"].get(i), (centerPoint, mainRoads.get(i)[1])
         )
         mainRoad.setLanes()
         # But we want to save it like the others.
-        mainRoad = Road(
+        mainRoad = RoadCurve(
             roadsData["mainRoads"].get(i),
             (
                 mainRoads.get(i)[1],
@@ -335,7 +335,101 @@ def intersection(roadsData, centerPoint, mainRoads, sideRoads):
                     # Key found.
                     for __, j in enumerate(mainRoads):
                         if key in mainRoads[j]:
-                            curveRoad = Road(
+                            curveRoad = RoadCurve(
+                                roadsData["mainRoads"][j], intersectionPoints
+                            )
+                            curveRoad.setLanes(
+                                [max(roadsData["mainRoads"][j]["lanes"])]
+                            )
+                    # for __, j in enumerate(sideRoads):
+                    #     print(sideRoads[j])
+                    #     if key == sideRoads[j]:
+                    #         print(
+                    #             roadsData["sideRoads"][j], intersectionPoints
+                    #         )
+                    #         curveRoad = Road(
+                    #             roadsData["sideRoads"][j], intersectionPoints
+                    #         )
+                    #         curveRoad.setLanes(
+                    #             [min(roadsData["sideRoads"][j]["lanes"])]
+                    #         )
+
+
+def intersection(roadsData, centerPoint, mainRoads, sideRoads):
+    """
+    [summary]
+
+    [extended_summary]
+
+    Args:
+        roadsData (dict): standard_modern_lanes_agencement
+        centerPoint (tuple): (x, y, z)
+        mainRoads (list): {0:((x, y, z), (x, y, z)), 1:((x, y, z), (x, y, z))}
+        sideRoads ([type]): {0:[(x, y, z), 1:(x, y, z), -1:(x, y, z), 2:(x, y, z)}
+    """
+    # Save all the lanes.
+    lanes = {}
+
+    # Set the side roads.
+    for i in roadsData["sideRoads"]:
+        sideRoad = RoadCurve(
+            roadsData["sideRoads"].get(i), (sideRoads.get(i), centerPoint)
+        )
+        sideRoad.setLanes()
+        lanes[sideRoads[i]] = sideRoad.getLanes()
+
+    # Set the main roads.
+    for i in roadsData["mainRoads"]:
+        mainRoad = RoadCurve(
+            roadsData["mainRoads"].get(i), (mainRoads.get(i)[0], centerPoint)
+        )
+        mainRoad.setLanes()
+        lanes[mainRoads[i][0]] = mainRoad.getLanes()
+        # We don't want to inverse the orientation of the main road.
+        mainRoad = RoadCurve(
+            roadsData["mainRoads"].get(i), (centerPoint, mainRoads.get(i)[1])
+        )
+        mainRoad.setLanes()
+        # But we want to save it like the others.
+        mainRoad = RoadCurve(
+            roadsData["mainRoads"].get(i),
+            (
+                mainRoads.get(i)[1],
+                centerPoint,
+            ),
+        )
+        lanes[mainRoads[i][1]] = mainRoad.getLanes()
+
+    # Sort all the points in rotation order.
+    points = []
+    points.extend([xyz[i] for xyz in mainRoads.values() for i in range(2)])
+    points.extend([xyz for xyz in sideRoads.values()])
+    points = maths.sortRotation(points)
+
+    # Compute the curve between each road.
+    for i in range(len(points)):
+        line0 = (
+            lanes[points[i]][max(lanes[points[i]])][0],
+            lanes[points[i]][max(lanes[points[i]])][1],
+        )
+        line1 = (
+            lanes[points[i - 1]][min(lanes[points[-1]])][0],
+            lanes[points[i - 1]][min(lanes[points[-1]])][1],
+        )
+
+        # Compute the curve.
+        intersectionPoints = maths.curveCornerIntersection(
+            line0, line1, 10, angleAdaptation=False
+        )
+
+        # Generate the curve.
+        for key, value in lanes.items():
+            for __, value1 in value.items():
+                if intersectionPoints[0] in value1:
+                    # Key found.
+                    for __, j in enumerate(mainRoads):
+                        if key in mainRoads[j]:
+                            curveRoad = RoadCurve(
                                 roadsData["mainRoads"][j], intersectionPoints
                             )
                             curveRoad.setLanes(
@@ -409,11 +503,11 @@ standard_modern_lanes_agencement = {
 
 intersection(
     standard_modern_lanes_agencement,
-    (-30, 150, 100),
+    (-30, 160, 100),
     {
-        0: ((20, 150, 200), (-20, 150, 60)),
+        0: ((20, 160, 200), (-20, 160, 60)),
     },
-    {0: (-100, 150, 100), 1: (100, 150, 100)},
+    {0: (-100, 160, 100), 1: (100, 160, 100)},
 )
 
 
