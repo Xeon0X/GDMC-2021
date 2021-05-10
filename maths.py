@@ -383,7 +383,8 @@ def cleanLine(path):  # HERE
     TODO:
         Do not work perfectly since 16/04/2021.
         Add new patterns.
-        Problem with i -= 10 : solved but not understand why. 16/04/2021.
+        Problem with i -= 10 : solved but not understand why.
+        16/04/2021.
     """
 
     pathTemp = []
@@ -506,8 +507,8 @@ def curveSurface(
         points (numpy.ndarray): Points where the curve should go.
         distance (int): Thickness.
         resolution (int, optional): Number of blocks that separate each
-        point to calculate parallel curves. 0 to use the points calculated to
-        create the curve. Defaults to 7.
+        point to calculate parallel curves. 0 to use the points
+        calculated to create the curve. Defaults to 7.
         pixelPerfect (bool, optional): True to avoid heaps. Defaults to
         False.
         factor (int, optional): Number of sub-line that will be
@@ -682,7 +683,8 @@ def getAngle(xy0, xy1, xy2):
 
 def lineIntersection(line0, line1, fullLine=True):
     """
-    Find (or not) intersection between two lines. Works in 2d but supports 3d.
+    Find (or not) intersection between two lines. Works in 2d but
+    supports 3d.
 
     https://stackoverflow.com/questions/20677795/how-do-i-compute-the-intersection-point-of-two-lines
 
@@ -744,12 +746,16 @@ def circleLineSegmentIntersection(
     Args:
         circleCenter (tuple): The (x, y) location of the circle center.
         circleRadius (int): The radius of the circle.
-        xy0 (tuple): The (x, y) location of the first point of the segment.
-        xy1 ([tuple]): The (x, y) location of the second point of the segment.
+        xy0 (tuple): The (x, y) location of the first point of the
+        segment.
+        xy1 ([tuple]): The (x, y) location of the second point of the
+        segment.
         fullLine (bool, optional): True to find intersections along
         full line - not just in the segment.  False will just return
         intersections within the segment. Defaults to True.
-        tangentTol (float, optional): Numerical tolerance at which we decide the intersections are close enough to consider it a tangent. Defaults to 1e-9.
+        tangentTol (float, optional): Numerical tolerance at which we
+        decide the intersections are close enough to consider it a
+        tangent. Defaults to 1e-9.
 
     Returns:
         list: A list of length 0, 1, or 2, where each element is a point
@@ -814,8 +820,8 @@ def circle(xyC, r):
 
     Returns:
         dict: Keys are distance from the circle. Value is a list of all
-        coordinates at this distance. 0 for a circle. Negative values for
-        a disc, positive values for a hole.
+        coordinates at this distance. 0 for a circle. Negative values
+        for a disc, positive values for a hole.
     """
     area = (
         (round(xyC[0]) - round(r), round(xyC[1]) - round(r)),
@@ -968,13 +974,11 @@ def sortRotation(points):
     return sortedPoints
 
 
-def curveCornerIntersection(
+def curveCornerIntersectionPoints(
     line0, line1, startDistance, angleAdaptation=False
 ):
     """
     Create points between the two lines to smooth the intersection.
-
-    This function was created in order to generate roads intersections.
 
     Args:
         line0 (tuple): Tuple of tuple. Line coordinates. Order matters.
@@ -990,7 +994,7 @@ def curveCornerIntersection(
         [list]: List of tuple of coordinates (2d) that forms the curve.
         Starts on the line and end on the other line.
 
-    >>> curveCornerIntersection(((0, 0), (50, 20)), ((-5, 50), (25, -5)), 10)
+    >>> curveCornerIntersectionPoints(((0, 0), (50, 20)), ((-5, 50), (25, -5)), 10)
     """
     intersection = lineIntersection(line0, line1, fullLine=True)
 
@@ -1040,6 +1044,82 @@ def curveCornerIntersection(
     # Be sure that all the points are in correct order.
     curveCornerPoints = optimizedPath(curveCornerPointsTemp, startCurvePoint)
     return curveCornerPoints
+
+
+def curveCornerIntersectionLine(
+    line0, line1, startDistance, angleAdaptation=False, center=()
+):
+    """
+    Create a continuous circular line between the two lines to smooth
+    the intersection.
+
+    Args:
+        line0 (tuple): Tuple of tuple. Line coordinates. Order matters.
+        line1 (tuple): Tuple of tuple. Line coordinates. Order matters.
+        startDistance (int): distance from the intersection where the
+        curve should starts.
+        angleAdaptation (bool, optional): True will adapt the
+        startDistance depending of the angle between the two lines.
+        False will force the distance to be startDistance. Defaults to
+        False.
+
+    Returns:
+        [list]: List of tuple of coordinates (2d) that forms the curve.
+        Starts on the line and end on the other line.
+
+    TODO:
+        angleAdaptation : Set circle radius and not startDistance.
+        Polar coordinates / Unit circle instead of InTriangle.
+
+    >>> curveCornerIntersectionLine(((0, 0), (50, 20)), ((-5, 50), (25, -5)), 10)
+    """
+    intersection = lineIntersection(line0, line1, fullLine=True)
+
+    if intersection == None:
+        return None
+
+    # Define automatically the distance from the intersection, where the curve
+    # starts.
+    if angleAdaptation:
+        angle = getAngle(
+            (line0[0][0], line0[0][-1]),
+            intersection,
+            (line1[0][0], line1[0][-1]),
+        )
+        # Set here the radius of the circle for a square angle.
+        startDistance = startDistance * abs(1 / (angle / 90))
+
+    startCurvePoint = circleLineSegmentIntersection(
+        intersection, startDistance, line0[0], intersection, fullLine=True
+    )[0]
+    endCurvePoint = circleLineSegmentIntersection(
+        intersection, startDistance, line1[0], intersection, fullLine=True
+    )[0]
+    # Higher value for better precision
+    perpendicular0 = perpendicular(10e3, startCurvePoint, intersection)[0]
+    perpendicular1 = perpendicular(10e3, endCurvePoint, intersection)[1]
+
+    if center == ():
+        center = lineIntersection(
+            (perpendicular0, startCurvePoint), (perpendicular1, endCurvePoint)
+        )
+
+    # Distance with startCurvePoint and endCurvePoint from the center
+    # are almost the same.
+    radius = distance2D(startCurvePoint, center)
+
+    circleArc = circle(center, round(radius))[0]
+
+    # Find the correct point on the circle.
+    curveCornerPointsTemp = [startCurvePoint]
+    for point in circleArc:
+        if InTriangle(point, intersection, startCurvePoint, endCurvePoint):
+            curveCornerPointsTemp.append(point)
+    # curveCornerPointsTemp.append(endCurvePoint)
+
+    # Be sure that all the points are in correct order.
+    curveCornerPoints = optimizedPath(curveCornerPointsTemp, startCurvePoint)
+    return curveCornerPoints, center
 
 
 def middleLine(xyz0, xyz1):

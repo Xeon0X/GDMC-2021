@@ -9,6 +9,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from scipy import ndimage
 from skimage.morphology import skeletonize
+import interfaceUtils
 
 
 def heightmap(xzStart, xzDistance):  # TODO: Can be better and clear.
@@ -324,7 +325,6 @@ def skeletonize(image):
     cv2.destroyAllWindows()
 
 
-heightmap((-524, -524), (524, 524))
 # sobel("heightmap.png")
 # edge("heightmap_sobel.png")
 # sobel("heightmap_edge.png")
@@ -334,3 +334,9 @@ heightmap((-524, -524), (524, 524))
 
 print("DONE")
 # print(areaCoordinates((-141, -160), (89, 440)))
+
+area = interfaceUtils.requestBuildArea()
+area = areaCoordinates(
+    (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
+)
+heightmap(area[0], area[1])

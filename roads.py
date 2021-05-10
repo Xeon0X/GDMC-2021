@@ -300,7 +300,7 @@ def DELETEintersection(roadsData, centerPoint, mainRoads, sideRoads):
         )
 
         # Compute the curve.
-        intersectionPointsTemp = maths.curveCornerIntersection(
+        intersectionPointsTemp = maths.curveCornerIntersectionPoints(
             line0, line1, 10, angleAdaptation=False
         )
 
@@ -380,11 +380,13 @@ def intersection(roadsData, centerPoint, mainRoads, sideRoads):
 
     # Set the main roads.
     for i in roadsData["mainRoads"]:
+        mainLanes = []
         mainRoad = RoadCurve(
             roadsData["mainRoads"].get(i), (mainRoads.get(i)[0], centerPoint)
         )
         mainRoad.setLanes()
         lanes[mainRoads[i][0]] = mainRoad.getLanes()
+        mainLanes.append(mainRoad.getLanes())
         # We don't want to inverse the orientation of the main road.
         mainRoad = RoadCurve(
             roadsData["mainRoads"].get(i), (centerPoint, mainRoads.get(i)[1])
@@ -399,6 +401,31 @@ def intersection(roadsData, centerPoint, mainRoads, sideRoads):
             ),
         )
         lanes[mainRoads[i][1]] = mainRoad.getLanes()
+        mainLanes.append(mainRoad.getLanes())
+
+        # # Compute the curve of the main road.
+        # center = ()
+        # for j in list(mainRoad.getLanes().keys()):
+
+        #     line0 = (mainLanes[0][j][0], mainLanes[0][j][1])
+        #     line1 = (mainLanes[1][j][0], mainLanes[1][j][1])
+
+        #     intersectionPointsTemp, center = maths.curveCornerIntersectionLine(
+        #         line0, line1, 70, angleAdaptation=False, center=center
+        #     )
+
+        #     y = 205
+        #     intersectionPoints = []
+        #     [
+        #         intersectionPoints.append((round(xz[0]), y, round(xz[1])))
+        #         for xz in intersectionPointsTemp
+        #         if (round(xz[0]), y, round(xz[1])) not in intersectionPoints
+        #     ]
+        #     print(intersectionPointsTemp, center)
+
+        #     singleLane2(
+        #         intersectionPoints, blocks=standard_modern_lane_composition
+        #     )
 
     # Sort all the points in rotation order.
     points = []
@@ -418,35 +445,47 @@ def intersection(roadsData, centerPoint, mainRoads, sideRoads):
         )
 
         # Compute the curve.
-        intersectionPoints = maths.curveCornerIntersection(
-            line0, line1, 10, angleAdaptation=False
+        intersectionPointsTemp = maths.curveCornerIntersectionLine(
+            line0, line1, 30, angleAdaptation=False
+        )[0]
+
+        y = 250
+        intersectionPoints = []
+        [
+            intersectionPoints.append((round(xz[0]), y, round(xz[1])))
+            for xz in intersectionPointsTemp
+            if (round(xz[0]), y, round(xz[1])) not in intersectionPoints
+        ]
+
+        singleLane2(
+            intersectionPoints, blocks=standard_modern_lane_composition
         )
 
-        # Generate the curve.
-        for key, value in lanes.items():
-            for __, value1 in value.items():
-                if intersectionPoints[0] in value1:
-                    # Key found.
-                    for __, j in enumerate(mainRoads):
-                        if key in mainRoads[j]:
-                            curveRoad = RoadCurve(
-                                roadsData["mainRoads"][j], intersectionPoints
-                            )
-                            curveRoad.setLanes(
-                                [max(roadsData["mainRoads"][j]["lanes"])]
-                            )
-                    # for __, j in enumerate(sideRoads):
-                    #     print(sideRoads[j])
-                    #     if key == sideRoads[j]:
-                    #         print(
-                    #             roadsData["sideRoads"][j], intersectionPoints
-                    #         )
-                    #         curveRoad = Road(
-                    #             roadsData["sideRoads"][j], intersectionPoints
-                    #         )
-                    #         curveRoad.setLanes(
-                    #             [min(roadsData["sideRoads"][j]["lanes"])]
-                    #         )
+        # # Generate the curve.
+        # for key, value in lanes.items():
+        #     for __, value1 in value.items():
+        #         if intersectionPoints[0] in value1:
+        #             # Key found.
+        #             for __, j in enumerate(mainRoads):
+        #                 if key in mainRoads[j]:
+        #                     curveRoad = RoadCurve(
+        #                         roadsData["mainRoads"][j], intersectionPoints
+        #                     )
+        #                     curveRoad.setLanes(
+        #                         [max(roadsData["mainRoads"][j]["lanes"])]
+        #                     )
+        #             # for __, j in enumerate(sideRoads):
+        #             #     print(sideRoads[j])
+        #             #     if key == sideRoads[j]:
+        #             #         print(
+        #             #             roadsData["sideRoads"][j], intersectionPoints
+        #             #         )
+        #             #         curveRoad = Road(
+        #             #             roadsData["sideRoads"][j], intersectionPoints
+        #             #         )
+        #             #         curveRoad.setLanes(
+        #             #             [min(roadsData["sideRoads"][j]["lanes"])]
+        #             #         )
 
 
 ############################# Lanes Preset #############################
@@ -470,20 +509,27 @@ standard_modern_lanes_agencement = {
                 1: {"type": singleLane2, "centerDistance": 5},
             }
         },
+        1: {
+            "lanes": {
+                -1: {"type": singleLane2, "centerDistance": -5},
+                0: {"type": singleLane2, "centerDistance": 0},
+                1: {"type": singleLane2, "centerDistance": 5},
+            }
+        },
     },
     "sideRoads": {
         0: {
             "lanes": {
                 -1: {"type": singleLane, "centerDistance": -5},
-                1: {"type": singleLane, "centerDistance": 5},
-                2: {"type": singleLane, "centerDistance": 11},
+                1: {"type": singleLane, "centerDistance": 0},
+                2: {"type": singleLane, "centerDistance": 5},
             }
         },
         1: {
             "lanes": {
                 -1: {"type": singleLane, "centerDistance": -5},
-                1: {"type": singleLane, "centerDistance": 5},
-                2: {"type": singleLane, "centerDistance": 11},
+                1: {"type": singleLane, "centerDistance": 0},
+                2: {"type": singleLane, "centerDistance": 5},
             }
         },
     },
@@ -503,11 +549,12 @@ standard_modern_lanes_agencement = {
 
 intersection(
     standard_modern_lanes_agencement,
-    (-30, 160, 100),
+    (20, 250, 120),
     {
-        0: ((20, 160, 200), (-20, 160, 60)),
+        0: ((20, 250, 200), (-20, 250, 60)),
+        1: ((60, 250, 60), (-50, 250, 150)),
     },
-    {0: (-100, 160, 100), 1: (100, 160, 100)},
+    {0: (-100, 250, 100), 1: (100, 250, 100)},
 )
 
 

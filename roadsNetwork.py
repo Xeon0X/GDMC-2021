@@ -252,7 +252,9 @@ def DELETEintersection(centerPoint, roadsData):
         line1 = roads[i - 1]
         main.setLine("white_concrete", line0[0], line0[1])
         main.setLine("red_concrete", line1[0], line1[1])
-        intersectionPoints = maths.curveCornerIntersection(line0, line1, 10)
+        intersectionPoints = maths.curveCornerIntersectionPoints(
+            line0, line1, 10
+        )
         # 2d to 3d.
         for i in range(len(intersectionPoints)):
             intersectionPoints[i] = (
@@ -371,7 +373,7 @@ def DELETE2intersection(blocks, XYZ, roadsData):
     for i in range(len(lanes)):
         line0 = lanes[i][max(lanes[i])]
         line1 = lanes[i - 1][min(lanes[i - 1])]
-        intersectionPointsTemp = maths.curveCornerIntersection(
+        intersectionPointsTemp = maths.curveCornerIntersectionPoints(
             line0, line1, 10
         )
         for i in range(len(intersectionPointsTemp)):
