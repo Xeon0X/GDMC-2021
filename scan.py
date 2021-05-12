@@ -55,6 +55,14 @@ def heightmap(xzStart, xzDistance):  # TODO: Can be better and clear.
 
     heightmap.save("heightmap.png")
     heightmapBiome.save("heightmap_biome.png")
+    blur("heightmap_biome.png")
+    blur("heightmap_medianBlur.png")
+    blur("heightmap_medianBlur.png")
+    blur("heightmap_medianBlur.png")
+    sobel("heightmap_medianBlur.png")
+    invert("heightmap_sobel.png")
+    skeletonize("heightmap_invert.png")
+    cleanSkeleton("heightmap_medianBlur.png", "heightmap_skeleton.png")
 
 
 def voronoiCoordinates(
@@ -63,7 +71,7 @@ def voronoiCoordinates(
     xyz1, xyz2 = area
     xzStart, xzDistance = areaCoordinates(xyz1, xyz2)
     heightmap(xzStart, xzDistance)
-    im = Image.open("heightmap.png")
+    im = Image.open("heightmap_biome.png")
 
     # Creating points depending of  the heightmap.
     buildable = []
@@ -72,12 +80,12 @@ def voronoiCoordinates(
 
     for x in range(0, xzDistance[0]):
         for z in range(0, xzDistance[1]):
-            __, g, b = im.getpixel((x, z))
-            if b >= 80:
+            __, g, b, __ = im.getpixel((x, z))
+            if b >= 80 and random.randint(0, 2) == 1:
                 notBuildable2.append((xzStart[0] + x, xzStart[1] + z))
-            elif g == 50:
+            elif g == 50 and random.randint(0, 2) == 1:
                 buildable.append((xzStart[0] + x, xzStart[1] + z))
-            else:
+            elif random.randint(0, 2) == 1:
                 notBuildable.append((xzStart[0] + x, xzStart[1] + z))
 
     # Sorting points depending of the distance.
@@ -114,7 +122,7 @@ def voronoiCoordinates(
         (min(area[0][0], area[1][0]), min(area[0][-1], area[1][-1])),
         (max(area[0][0], area[1][0]), max(area[0][-1], area[1][-1])),
     )
-    print(areaMinMax)
+
     map.voronoi(blocks, areaMinMax, zonesDistrictsPos, xzStart)
 
 
@@ -181,11 +189,11 @@ def heightmapColor(y, biomeId, block):
     ]
 
     if (biomeId in water) or (block in waterBlocks):
-        return y, y, 255, y
+        return y, y, 255, 255
     if biomeId in neutral:
-        return y, 255, y, y
+        return y, 255, y, 255
     else:
-        return 255, y, y, y
+        return 255, y, y, 255
 
 
 def canny(image):
@@ -320,9 +328,109 @@ def skeletonize(image):
             break
 
     # Displaying the final skeleton
+    plt.imsave("heightmap_skeleton.png", skel, cmap="gray", format="png")
     cv2.imshow("Skeleton", skel)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+def invert(image):
+    im = Image.open(image)
+    width, height = im.size
+    for x in range(width):
+        for y in range(height):
+            im.putpixel(
+                (x, y),
+                (
+                    255 - im.getpixel((x, y))[0],
+                    255 - im.getpixel((x, y))[1],
+                    255 - im.getpixel((x, y))[2],
+                ),
+            )
+    im.save("heightmap_invert.png")
+
+
+def cleanSkeleton(biome, skeleton):
+    biome = Image.open(biome)
+    skeleton = Image.open(skeleton)
+    width, height = biome.size
+
+    heightmap_clean = Image.new(
+        "RGB",
+        (width, height),
+        "#000000",
+    )
+
+    for x in range(width):
+        for y in range(height):
+            if (
+                biome.getpixel((x, y))[1] == 255
+                and skeleton.getpixel((x, y))[1] == 255
+            ):
+                heightmap_clean.putpixel(
+                    (x, y),
+                    (
+                        255,
+                        255,
+                        255,
+                    ),
+                )
+    heightmap_clean.save("heightmap_clean.png")
+
+
+def voronoiCoordinates2(blocks, area, distanceMin1, distanceMin2):
+    xyz1, xyz2 = area
+    xzStart, xzDistance = areaCoordinates(xyz1, xyz2)
+    heightmap(xzStart, xzDistance)
+    im = Image.open("heightmap_clean.png")
+
+    # Creating points depending of  the heightmap.
+    buildable = []
+    notBuildable = []
+    notBuildable2 = []
+
+    for x in range(0, xzDistance[0]):
+        for z in range(0, xzDistance[1]):
+            __, __, b = im.getpixel((x, z))
+            if b >= 200:
+                notBuildable2.append((xzStart[0] + x, xzStart[1] + z))
+
+    # Sorting points depending of the distance.
+    coordsBuildable = []
+    coordsNotBuildable = []
+    coordsNotBuildable2 = []
+
+    for build in buildable:
+        if all(
+            maths.distance2D(build, coord) > distanceMin1
+            for coord in coordsBuildable
+        ):
+            coordsBuildable.append(build)
+
+    for notBuild in notBuildable:
+        if all(
+            maths.distance2D(notBuild, coord) > distanceMin2
+            for coord in coordsNotBuildable
+        ):
+            coordsNotBuildable.append(notBuild)
+
+    for notBuild2 in notBuildable2:
+        if all(
+            maths.distance2D(notBuild2, coord) > distanceMin2
+            for coord in coordsNotBuildable2
+        ):
+            coordsNotBuildable2.append(notBuild2)
+
+    # Generating voronoi.
+    zonesDistrictsPos = (
+        [coordsBuildable] + [coordsNotBuildable] + [coordsNotBuildable2]
+    )
+    areaMinMax = (
+        (min(area[0][0], area[1][0]), min(area[0][-1], area[1][-1])),
+        (max(area[0][0], area[1][0]), max(area[0][-1], area[1][-1])),
+    )
+
+    map.voronoi2(blocks, areaMinMax, zonesDistrictsPos, xzStart)
 
 
 # sobel("heightmap.png")
@@ -332,11 +440,19 @@ def skeletonize(image):
 # blur("heightmap_biome.png")
 # skeletonize("heightmap_medianBlur.png")
 
-print("DONE")
 # print(areaCoordinates((-141, -160), (89, 440)))
 
+# area = areaCoordinates(
+#     (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
+# )
+# heightmap(area[0], area[1])
+
+print("start")
 area = interfaceUtils.requestBuildArea()
-area = areaCoordinates(
-    (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
+print("a")
+area = (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
+print("b")
+voronoiCoordinates2(
+    ["white_concrete", "red_concrete", "purple_concrete"], area, 50, 50
 )
-heightmap(area[0], area[1])
+print("c")

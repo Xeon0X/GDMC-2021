@@ -179,6 +179,7 @@ def singleLane2(XYZ, blocks=standard_modern_lane_composition):
 
 class RoadCurve:
     def __init__(self, roadData, XYZ):
+        print("road:", XYZ)
         """Create points that forms the lanes depending of the roadData."""
         self.roadData = roadData
         self.XYZ = XYZ
@@ -449,7 +450,7 @@ def intersection(roadsData, centerPoint, mainRoads, sideRoads):
             line0, line1, 30, angleAdaptation=False
         )[0]
 
-        y = 250
+        y = centerPoint[1]
         intersectionPoints = []
         [
             intersectionPoints.append((round(xz[0]), y, round(xz[1])))
@@ -509,13 +510,13 @@ standard_modern_lanes_agencement = {
                 1: {"type": singleLane2, "centerDistance": 5},
             }
         },
-        1: {
-            "lanes": {
-                -1: {"type": singleLane2, "centerDistance": -5},
-                0: {"type": singleLane2, "centerDistance": 0},
-                1: {"type": singleLane2, "centerDistance": 5},
-            }
-        },
+        # 1: {
+        #     "lanes": {
+        #         -1: {"type": singleLane2, "centerDistance": -5},
+        #         0: {"type": singleLane2, "centerDistance": 0},
+        #         1: {"type": singleLane2, "centerDistance": 5},
+        #     }
+        # },
     },
     "sideRoads": {
         0: {
@@ -525,13 +526,13 @@ standard_modern_lanes_agencement = {
                 2: {"type": singleLane, "centerDistance": 5},
             }
         },
-        1: {
-            "lanes": {
-                -1: {"type": singleLane, "centerDistance": -5},
-                1: {"type": singleLane, "centerDistance": 0},
-                2: {"type": singleLane, "centerDistance": 5},
-            }
-        },
+        # 1: {
+        #     "lanes": {
+        #         -1: {"type": singleLane, "centerDistance": -5},
+        #         1: {"type": singleLane, "centerDistance": 0},
+        #         2: {"type": singleLane, "centerDistance": 5},
+        #     }
+        # },
     },
 }
 
@@ -547,15 +548,15 @@ standard_modern_lanes_agencement = {
 # )
 
 
-intersection(
-    standard_modern_lanes_agencement,
-    (20, 250, 120),
-    {
-        0: ((20, 250, 200), (-20, 250, 60)),
-        1: ((60, 250, 60), (-50, 250, 150)),
-    },
-    {0: (-100, 250, 100), 1: (100, 250, 100)},
-)
+# intersection(
+#     standard_modern_lanes_agencement,
+#     (20, 250, 120),
+#     {
+#         0: ((20, 250, 200), (-20, 250, 60)),
+#         1: ((60, 250, 60), (-50, 250, 150)),
+#     },
+#     {0: (-100, 250, 100), 1: (100, 250, 100)},
+# )
 
 
 # roadTest = Road(

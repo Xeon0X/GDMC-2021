@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 from scipy.spatial import Voronoi, voronoi_plot_2d
 import matplotlib.pyplot as plt
+import roads
 
 
 def DELETEvoronoiRandom(
@@ -297,7 +298,16 @@ def findGround(xzStart, xz):
     x = round(xz[0] - xzStart[0])
     z = round(xz[-1] - xzStart[-1])
     # Alpha is defined as the height ([3]).
-    return xz[0], im.getpixel((x, z))[3], xz[-1]
+    width, height = im.size
+    if x >= width or z >= height:
+        print("img:", x, z)
+        print(width, height)
+        print(xzStart, xz)
+    try:
+        return xz[0], im.getpixel((x, z))[2], xz[-1]
+    except:
+        print("Error getpixel in map.py:309")
+        return None
 
 
 def voronoi(blocks, area, zonesDistrictsPos, xzStart):  # TODO: Refactoring.
@@ -381,3 +391,144 @@ def voronoi(blocks, area, zonesDistrictsPos, xzStart):  # TODO: Refactoring.
                                 ],
                             ),
                         )
+
+
+def voronoi2(blocks, area, zonesDistrictsPos, xzStart):  # TODO: Refactoring.
+    # Coordinates of each district point.
+    districtsPos = [
+        districtPos for zone in zonesDistrictsPos for districtPos in zone
+    ]
+    # print(districtsPos, "districtsPos")
+    vor = Voronoi(np.array(districtsPos))
+
+    # List of coordinates of each edge.
+    edgesPos = vor.vertices
+    # List of list of indexes of edges. Each list is a district.
+    districtsEdgesInd = vor.regions
+    # Actual index = actual coordinates in districtsPos, value = index of the region.
+    districtsPointInd = vor.point_region
+
+    print(edgesPos)
+    print(districtsEdgesInd)
+    print(districtsPointInd)
+    print(districtsPos)
+
+    districtInd = -1
+    for districtPointInd in districtsPointInd:
+        districtInd += 1
+
+        # Take districts which are inside the area.
+        if -1 not in districtsEdgesInd[districtPointInd]:
+            if all(
+                (
+                    area[0][0] + 1
+                    <= edgesPos[districtEdgesInd][0]
+                    <= area[1][0] - 1
+                )
+                and (
+                    area[0][1] + 1
+                    <= edgesPos[districtEdgesInd][1]
+                    <= area[1][1] - 1
+                )
+                for districtEdgesInd in districtsEdgesInd[districtPointInd]
+            ):
+
+                # raod.intersection(
+                #     standard_modern_lanes_agencement,
+                #     (20, 250, 120),
+                #     {
+                #         0: ((20, 250, 200), (-20, 250, 60)),
+                #         1: ((60, 250, 60), (-50, 250, 150)),
+                #     },
+                #     {0: (-100, 250, 100), 1: (100, 250, 100)},
+                # )
+                # Find out which area the district belongs to.
+                for zone in range(len(zonesDistrictsPos)):
+                    if districtsPos[districtInd] in zonesDistrictsPos[zone]:
+
+                        # Place line.
+                        for i in range(
+                            len(districtsEdgesInd[districtPointInd])
+                        ):
+                            intersection_center = []
+                            intersection = []
+                            for j in range(len(districtsEdgesInd)):
+                                if j != districtPointInd:
+                                    for k in range(len(districtsEdgesInd[j])):
+                                        if (
+                                            districtsEdgesInd[
+                                                districtPointInd
+                                            ][i]
+                                            == districtsEdgesInd[j][k - 1]
+                                        ):
+                                            # print(
+                                            #     districtsEdgesInd[
+                                            #         districtPointInd
+                                            #     ][i],
+                                            #     districtsEdgesInd[j],
+                                            #     districtsEdgesInd[j][k],
+                                            #     districtsEdgesInd[j][k - 1],
+                                            #     districtsEdgesInd[j][k - 2],
+                                            # )
+                                            if (
+                                                districtsEdgesInd[
+                                                    districtPointInd
+                                                ][i]
+                                                not in intersection_center
+                                            ):
+                                                intersection_center.append(
+                                                    districtsEdgesInd[
+                                                        districtPointInd
+                                                    ][i]
+                                                )
+                                            if (
+                                                districtsEdgesInd[j][k]
+                                                not in intersection
+                                            ):
+                                                intersection.append(
+                                                    districtsEdgesInd[j][k]
+                                                )
+                                            if (
+                                                districtsEdgesInd[j][k - 2]
+                                                not in intersection
+                                            ):
+                                                intersection.append(
+                                                    districtsEdgesInd[j][k - 2]
+                                                )
+                            # print(intersection_center, intersection)
+                            if -1 not in intersection:
+                                # image index out of range
+                                g2 = findGround(
+                                    xzStart,
+                                    list(edgesPos[intersection[-2]]),
+                                )
+                                g1 = findGround(
+                                    xzStart,
+                                    list(edgesPos[intersection[-1]]),
+                                )
+                                g0 = findGround(
+                                    xzStart,
+                                    list(edgesPos[intersection_center[0]]),
+                                )
+
+                                if g0 != None and g1 != None and g2 != None:
+                                    pointDico = {}
+                                    mainDico = (
+                                        g2,
+                                        g1,
+                                    )
+                                    for a in range(0, len(intersection) - 2):
+                                        pointDico[a] = findGround(
+                                            xzStart,
+                                            list(edgesPos[intersection[a]]),
+                                        )
+
+                                    roads.intersection(
+                                        roads.standard_modern_lanes_agencement,
+                                        g0,
+                                        {0: mainDico},
+                                        pointDico,
+                                    )
+                                    print("build")
+                                else:
+                                    print("it's ok")
