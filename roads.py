@@ -356,7 +356,9 @@ def DELETEintersection(roadsData, centerPoint, mainRoads, sideRoads):
                     #         )
 
 
-def intersection(roadsData, centerPoint, mainRoads, sideRoads):
+def intersection(
+    roadsData, centerPoint, mainRoads, sideRoads
+):  # TODO: Refactoring. Error with y in curve.
     """
     [summary]
 
@@ -447,16 +449,30 @@ def intersection(roadsData, centerPoint, mainRoads, sideRoads):
 
         # Compute the curve.
         intersectionPointsTemp = maths.curveCornerIntersectionLine(
-            line0, line1, 30, angleAdaptation=False
+            line0, line1, 10, angleAdaptation=False
         )[0]
 
-        y = centerPoint[1]
+        y = centerPoint[1]  # Not the real y here
         intersectionPoints = []
         [
             intersectionPoints.append((round(xz[0]), y, round(xz[1])))
             for xz in intersectionPointsTemp
             if (round(xz[0]), y, round(xz[1])) not in intersectionPoints
         ]
+        diffAlt = abs(line0[0][1] - line1[0][1])
+        maxAlt = max(line0[0][1], line1[0][1])
+        print(diffAlt, maxAlt, len(intersectionPoints))
+        if diffAlt != 0:
+            step = len(intersectionPoints) // diffAlt
+        else:
+            step = 1
+        for i in range(len(intersectionPoints)):
+            print(i)
+            intersectionPoints[i] = (
+                intersectionPoints[i][0],
+                maxAlt - (i // step),
+                intersectionPoints[i][2],
+            )
 
         singleLane2(
             intersectionPoints, blocks=standard_modern_lane_composition
@@ -510,13 +526,13 @@ standard_modern_lanes_agencement = {
                 1: {"type": singleLane2, "centerDistance": 5},
             }
         },
-        # 1: {
-        #     "lanes": {
-        #         -1: {"type": singleLane2, "centerDistance": -5},
-        #         0: {"type": singleLane2, "centerDistance": 0},
-        #         1: {"type": singleLane2, "centerDistance": 5},
-        #     }
-        # },
+        1: {
+            "lanes": {
+                -1: {"type": singleLane2, "centerDistance": -5},
+                0: {"type": singleLane2, "centerDistance": 0},
+                1: {"type": singleLane2, "centerDistance": 5},
+            }
+        },
     },
     "sideRoads": {
         0: {
@@ -526,13 +542,13 @@ standard_modern_lanes_agencement = {
                 2: {"type": singleLane, "centerDistance": 5},
             }
         },
-        # 1: {
-        #     "lanes": {
-        #         -1: {"type": singleLane, "centerDistance": -5},
-        #         1: {"type": singleLane, "centerDistance": 0},
-        #         2: {"type": singleLane, "centerDistance": 5},
-        #     }
-        # },
+        1: {
+            "lanes": {
+                -1: {"type": singleLane, "centerDistance": -5},
+                1: {"type": singleLane, "centerDistance": 0},
+                2: {"type": singleLane, "centerDistance": 5},
+            }
+        },
     },
 }
 
@@ -547,15 +563,14 @@ standard_modern_lanes_agencement = {
 #     {0: (50, 140, -200), 1: (150, 140, -200), 2: (175, 140, -175)},
 # )
 
-
 # intersection(
 #     standard_modern_lanes_agencement,
-#     (20, 250, 120),
+#     (300, 130, 100),
 #     {
-#         0: ((20, 250, 200), (-20, 250, 60)),
-#         1: ((60, 250, 60), (-50, 250, 150)),
+#         0: ((300, 130, 0), (300, 130, 200)),
+#         1: ((250, 130, 150), (350, 130, -50)),
 #     },
-#     {0: (-100, 250, 100), 1: (100, 250, 100)},
+#     {0: (400, 130, 200), 1: (250, 130, 50)},
 # )
 
 

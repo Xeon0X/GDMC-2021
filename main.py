@@ -3,7 +3,7 @@ import numpy as np
 from worldLoader import WorldSlice
 import maths
 
-USE_BATCHING = False
+USE_BATCHING = True
 
 
 def setBlock(block, xyz):

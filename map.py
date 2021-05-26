@@ -8,6 +8,8 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 import matplotlib.pyplot as plt
 import roads
 
+print("map.py")
+
 
 def DELETEvoronoiRandom(
     number, xMinArea, xMaxArea, yMinArea, yMaxArea, y, block, distanceMin
@@ -283,7 +285,7 @@ def DELETEvoronoi(
                 )
 
 
-def findGround(xzStart, xz):
+def findGround(xzStart, xz):  # TODO: Change error.
     """
     Find the surface at xz using heightmap.
 
@@ -306,11 +308,13 @@ def findGround(xzStart, xz):
     try:
         return xz[0], im.getpixel((x, z))[2], xz[-1]
     except:
-        print("Error getpixel in map.py:309")
+        print("Error getpixel in map.py:309 with ", x, z)
         return None
 
 
-def voronoi(blocks, area, zonesDistrictsPos, xzStart):  # TODO: Refactoring.
+def DELETEvoronoi(
+    blocks, area, zonesDistrictsPos, xzStart
+):  # TODO: Refactoring.
     # Coordinates of each district point.
     districtsPos = [
         districtPos for zone in zonesDistrictsPos for districtPos in zone
@@ -393,7 +397,9 @@ def voronoi(blocks, area, zonesDistrictsPos, xzStart):  # TODO: Refactoring.
                         )
 
 
-def voronoi2(blocks, area, zonesDistrictsPos, xzStart):  # TODO: Refactoring.
+def voronoi2(
+    blocks, area, zonesDistrictsPos, xzStart
+):  # TODO: Refactoring but not with voronoi.
     # Coordinates of each district point.
     districtsPos = [
         districtPos for zone in zonesDistrictsPos for districtPos in zone
@@ -510,25 +516,44 @@ def voronoi2(blocks, area, zonesDistrictsPos, xzStart):  # TODO: Refactoring.
                                     xzStart,
                                     list(edgesPos[intersection_center[0]]),
                                 )
+                                print("G0", g0, g1, g2)
 
                                 if g0 != None and g1 != None and g2 != None:
+                                    print("G", g0, g1, g2)
                                     pointDico = {}
                                     mainDico = (
                                         g2,
                                         g1,
                                     )
                                     for a in range(0, len(intersection) - 2):
-                                        pointDico[a] = findGround(
-                                            xzStart,
-                                            list(edgesPos[intersection[a]]),
-                                        )
+                                        if (
+                                            findGround(
+                                                xzStart,
+                                                list(
+                                                    edgesPos[intersection[a]]
+                                                ),
+                                            )
+                                            != None
+                                        ):
+                                            pointDico[a] = findGround(
+                                                xzStart,
+                                                list(
+                                                    edgesPos[intersection[a]]
+                                                ),
+                                            )
+                                        else:
+                                            print("Error here")
 
-                                    roads.intersection(
-                                        roads.standard_modern_lanes_agencement,
-                                        g0,
-                                        {0: mainDico},
-                                        pointDico,
-                                    )
+                                    print("g0: ", g0)
+                                    print("mainDico: ", mainDico)
+                                    print("pointDico: ", pointDico)
+                                    if pointDico != {}:
+                                        roads.intersection(
+                                            roads.standard_modern_lanes_agencement,
+                                            g0,
+                                            {0: mainDico},
+                                            pointDico,
+                                        )
                                     print("build")
                                 else:
                                     print("it's ok")

@@ -61,7 +61,7 @@ def heightmap(xzStart, xzDistance):  # TODO: Can be better and clear.
     blur("heightmap_medianBlur.png")
     sobel("heightmap_medianBlur.png")
     invert("heightmap_sobel.png")
-    skeletonize("heightmap_invert.png")
+    skeletonize("heightmap_medianBlur.png")
     cleanSkeleton("heightmap_medianBlur.png", "heightmap_skeleton.png")
 
 
@@ -189,11 +189,11 @@ def heightmapColor(y, biomeId, block):
     ]
 
     if (biomeId in water) or (block in waterBlocks):
-        return y, y, 255, 255
+        return 0, 0, 0, 0
     if biomeId in neutral:
-        return y, 255, y, 255
+        return 255, 255, 255, 255
     else:
-        return 255, y, y, 255
+        return 0, 0, 0, 0
 
 
 def canny(image):
@@ -292,14 +292,14 @@ def edge(image):
     print("done")
 
 
-def blur(image):
+def blur(image, factor=5):
     # Blur
     img = cv2.imread(image)
-    img = cv2.medianBlur(img, 5)
+    img = cv2.medianBlur(img, factor)
     plt.imsave("heightmap_medianBlur.png", img, cmap="gray", format="png")
 
 
-def skeletonize(image):
+def skeletonize2(image):
     # Read the image as a grayscale image
     img = cv2.imread(image, 0)
 
@@ -329,9 +329,150 @@ def skeletonize(image):
 
     # Displaying the final skeleton
     plt.imsave("heightmap_skeleton.png", skel, cmap="gray", format="png")
-    cv2.imshow("Skeleton", skel)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow("Skeleton", skel)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+
+def skeletonize(image):
+    # https://jni.github.io/skan/api/skan.csr.html
+    from skimage import img_as_bool, io, color, morphology
+    from skan import Skeleton
+    from skan import skeleton_to_csgraph
+    import matplotlib.pyplot as plt
+
+    img = img_as_bool(color.rgb2gray(color.rgba2rgb(io.imread(image))))
+    out = morphology.skeletonize(img)
+    out1 = morphology.medial_axis(img)
+
+    pixel_graph, coordinates, degrees = skeleton_to_csgraph(out)
+
+    pixel_graph = pixel_graph.tocoo()
+
+    coordinates = list(coordinates)
+    for i in range(len(coordinates)):  # List of lists. Inverted coordinates.
+        coordinates[i] = (coordinates[i][1], coordinates[i][0])
+
+    degrees = list(degrees)
+    for i in range(len(degrees)):
+        degrees[i] = list(degrees[i])  # List of lists.
+
+    numberJunctions = []
+    for i in range(len(coordinates)):
+        numberJunctions.append(
+            (
+                degrees[int(coordinates[i][1])][int(coordinates[i][0])],
+                coordinates[i],
+            )
+        )
+
+    f, (ax0, ax1, ax2) = plt.subplots(1, 3)
+    ax0.imshow(img, cmap="gray", interpolation="nearest")
+    ax1.imshow(out, cmap="gray", interpolation="nearest")
+    ax2.imshow(out1, cmap="gray", interpolation="nearest")
+    plt.imsave("heightmap_skeletonV2.1.png", out1, cmap="gray", format="png")
+
+    intersections = []
+    for i in range(len(numberJunctions)):
+        if numberJunctions[i][0] >= 3:
+            intersections.append(
+                (int(numberJunctions[i][1][0]), int(numberJunctions[i][1][1]))
+            )
+        if numberJunctions[i][0] >= 4:
+            print(
+                (int(numberJunctions[i][1][0]), int(numberJunctions[i][1][1])),
+                numberJunctions[i][0],
+            )
+
+    plt.show()
+    return intersections
+
+    #         print(numberJunctions[i])
+    #         image1 = Image.open("heightmap_medianBlur.png")
+    #         image1.putpixel(
+    #             (int(numberJunctions[i][1][0]), int(numberJunctions[i][1][1])),
+    #             (255, 0, 0),
+    #         )
+    #         print(
+    #             (int(numberJunctions[i][1][0]), int(numberJunctions[i][1][1]))
+    #         )
+    # image1.show()
+
+    # print("data", pixel_graph.data)  # Distance between row and col.
+    # print("row", pixel_graph.row)  # Invert x and y.
+    # print("col", pixel_graph.col)  # Invert x and y.
+    # print("coo", coordinates)  # Coordinates.
+    # print("len", len(coordinates))
+    # print("numberJunctions", numberJunctions)
+
+    # pixel_graph_degrees = []
+    # for i in range(len(coordinates)):
+    #     a = list(degrees)[int(list(coordinates[pixel_graph.row[i]])[0])][
+    #         int(list(coordinates[pixel_graph.row[i]])[1])
+    #     ]
+    #     pixel_graph_degrees.append(
+    #         a
+    #     )  # Give the number of connection on that point.
+    #     if a == 0:
+    #         print(
+    #             coordinates[pixel_graph.row[i]],
+    #             coordinates[pixel_graph.col[i]],
+    #             pixel_graph.data[i],
+    #             a,
+    #         )
+
+    # TODO: Save/Parse the lines.
+    # [(y, x),(y, x)...],[degrees[0], degreses[-1]],[tag]
+
+    # ERROR: 0 value of point connection sometimes, and distance != 1 or sqrt(2).
+    # len = x, but max = x-1, with no 0 at stat.
+
+    # print(pixel_graph_degrees)
+    # Clean the border and update the pixel data.
+    # For all the point, if coord in border:
+    # Delete the point and check the neighbors
+    # If not in border, -1 to the number of neighbors
+    # Maybe clean the num intersection = 0?
+
+    # Bride?
+
+    # Main road?
+    # Trouver le chemin le plus long : comment? #HELP
+
+    # Intersection
+    # While update >= 1:
+    # For all the points if connection >= 3:
+    # Kill all points near(20 blocks) intersection (>= 3) that are part of the line (<=2).
+    # Find near (<= 20 blocks) intersection (>= 3) and combine them (find middle)
+    # No probelm if completed with straight liane. /!\ if all a line is deleted by two intersection at 40 blocks.
+    # Redo again until there is no update
+    # Save the intersection points with the last of each line, because we know at wich line the first connection belongs to.
+    # The line should be not shorten but completed with the straight line.
+
+    # We have now two datas: the line(shorten) and the intersection points with the corresponding line and if it is the last or the first point of the line.
+
+    # For the number of line:
+    # Tag the line with a category (road/highways)
+    # Depending of...? first and last element of the line? If == 1 it's an impasse...
+
+    # For number of line:
+    # Place line. Stick with the road already generated with the intersection using the points data of the line.
+
+    # For number of intersection (>= 3):
+    # place intersection using the tag for the road type but only place the curve road to prevent duplicates.
+
+    # pixel_graph = pixel_graph.getrow(5).toarray()[0]
+    # print(list(pixel_graph))
+    # print(type(pixel_graph))
+    # ndarray = pixel_graph.toarray()
+    # print(ndarray)
+    # pixel_graph = ndarray.tolist()
+    # pixel_graph = list(pixel_graph)
+    # print(":",tolist(pixel_graph)[4], tolist(pixel_graph)[4][0])
+    # print(coordinates, degrees) # Coordinate inverted ! Ne reste plus qu'à trouver comment accéder à chaque élément dans pixel graph.
+    # print("2", pixel_graph[1][0])
+
+    # print(Skeleton(out).paths_list())
 
 
 def invert(image):
@@ -378,7 +519,9 @@ def cleanSkeleton(biome, skeleton):
     heightmap_clean.save("heightmap_clean.png")
 
 
-def voronoiCoordinates2(blocks, area, distanceMin1, distanceMin2):
+def voronoiCoordinates2(
+    blocks, area, distanceMin1, distanceMin2
+):  # TODO: DELETE
     xyz1, xyz2 = area
     xzStart, xzDistance = areaCoordinates(xyz1, xyz2)
     heightmap(xzStart, xzDistance)
@@ -442,17 +585,19 @@ def voronoiCoordinates2(blocks, area, distanceMin1, distanceMin2):
 
 # print(areaCoordinates((-141, -160), (89, 440)))
 
+# print("start")
+# area = interfaceUtils.requestBuildArea()
+# print("a")
+# area = (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
+# print("b")
+# voronoiCoordinates2(
+#     ["white_concrete", "red_concrete", "purple_concrete"], area, 50, 50
+# )
+# print("c")
+
 # area = areaCoordinates(
 #     (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
 # )
 # heightmap(area[0], area[1])
 
-print("start")
-area = interfaceUtils.requestBuildArea()
-print("a")
-area = (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
-print("b")
-voronoiCoordinates2(
-    ["white_concrete", "red_concrete", "purple_concrete"], area, 50, 50
-)
-print("c")
+skeletonize("heightmap_medianBlur.png")
