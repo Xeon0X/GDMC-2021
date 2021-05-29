@@ -1,7 +1,6 @@
 import interfaceUtils as minecraft
-import numpy as np
-from worldLoader import WorldSlice
 import maths
+
 
 USE_BATCHING = True
 
@@ -25,6 +24,5 @@ def fillBlock(block, xyz):
 
 def setLine(block, xyz0, xyz1, pixelPerfect=True):
     points = maths.line(xyz0, xyz1, pixelPerfect)
-
     for i in points:
         setBlock(block, (i[0], i[1], i[2]))

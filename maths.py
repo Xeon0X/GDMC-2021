@@ -182,6 +182,12 @@ def curve(points, number_true_pts=40, debug=False):
     Returns:
         tuple: Tuple of list of each coordinate.
     """
+    # Remove duplicates.
+    points = tuple(map(tuple, points))
+    print(points, "before")
+    points = sorted(set(points), key=points.index)
+
+    print(points, "after")
 
     x_sample = []
     y_sample = []
@@ -249,26 +255,38 @@ def curveOffset(x, y, z, distance=5):
 
     # Offsetting
     for i in range(len(x) - 1):
-        paralell = offset(distance, (x[i], z[i]), (x[i + 1], z[i + 1]))
+        parallel = offset(distance, (x[i], z[i]), (x[i + 1], z[i + 1]))
         lineA.append(
             (
-                (paralell[0][0][0], y[i], paralell[0][0][1]),
-                (paralell[0][1][0], y[i + 1], paralell[0][1][1]),
+                (parallel[0][0][0], y[i], parallel[0][0][1]),
+                (parallel[0][1][0], y[i + 1], parallel[0][1][1]),
             )
         )
         lineB.append(
             (
-                (paralell[1][0][0], y[i], paralell[1][0][1]),
-                (paralell[1][1][0], y[i + 1], paralell[1][1][1]),
+                (parallel[1][0][0], y[i], parallel[1][0][1]),
+                (parallel[1][1][0], y[i + 1], parallel[1][1][1]),
             )
         )
 
     # First points
+    # print(x, y, z, distance)
+    # print(x, len(x))
+    # print("lineA:", lineA)
+    # print("parallel:", parallel)
     line0.append(
-        (round(lineA[0][0][0]), round(lineA[0][0][1]), round(lineA[0][0][2]))
+        (
+            round(lineA[0][0][0]),
+            round(lineA[0][0][1]),
+            round(lineA[0][0][2]),
+        )
     )
     line1.append(
-        (round(lineB[0][0][0]), round(lineB[0][0][1]), round(lineB[0][0][2]))
+        (
+            round(lineB[0][0][0]),
+            round(lineB[0][0][1]),
+            round(lineB[0][0][2]),
+        )
     )
 
     # Middle of between segments
@@ -535,7 +553,7 @@ def curveSurface(
             resolution=7,
         )
     """
-
+    print("points:", points, "end points")
     if len((points)) >= 3:
         # Calculate resolution of the main curve depending of the total curve length.
         lenCurve = 0
@@ -549,6 +567,12 @@ def curveSurface(
 
         # Calculate the main line.
         X, Y, Z = curve(points, number_true_pts)
+        if len(X) < 2:
+            X, Y, Z = (
+                (points[0][0], points[1][0]),
+                (points[0][1], points[1][1]),
+                (points[0][2], points[1][2]),
+            )
     else:
         X, Y, Z = (
             (points[0][0], points[1][0]),
@@ -568,7 +592,8 @@ def curveSurface(
             returnPoints.append((round(X[i]), round(Y[i]), round(Z[i])))
 
     # Clean the main line.
-    centerLine = cleanLine(centerLineTemp)
+    # centerLine = cleanLine(centerLineTemp)
+    centerLine = centerLineTemp
 
     # Offset.
     centerPoints = []
@@ -587,6 +612,8 @@ def curveSurface(
     rightPoints = []
     leftPoints = []
 
+    # print(centerLine, "XYZ centerPoint to offset")
+    # print(cleanLine(centerLineTemp), "with cleanLine")
     for i in range(start * factor, distance * factor):
         rightPoint, leftPoint = curveOffset(X, Y, Z, i / factor)
         rightPoints.append(rightPoint)

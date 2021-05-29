@@ -2,7 +2,12 @@ import numpy as np
 import maths
 import math
 import main
+import map
+import interfaceUtils as minecraft
 import random
+
+from PIL import Image
+from collections import Counter
 
 
 ######################## Lanes materials presets #######################
@@ -15,7 +20,7 @@ standard_modern_lane_composition = {
         "black_concrete_powder": 2,
     },
     "median_strip": {"stone": 1},
-    "structure": {"stone": 1},
+    "structure": {"stone": 3, "andesite": 1},
     "central_lines": {"yellow_concrete": 3, "yellow_concrete_powder": 1},
     "external_lines": {"white_concrete": 3, "white_concrete_powder": 1},
     "lines": {"white_concrete": 3, "white_concrete_powder": 1},
@@ -45,8 +50,8 @@ def cleanLanes(lanes):
 ############################ Lanes functions ###########################
 
 
-def singleLane(XYZ, blocks=standard_modern_lane_composition):
-    """Generate a single and simple modern lane."""
+def singleLaneLeft(XYZ, blocks=standard_modern_lane_composition):
+    """Left side."""
 
     factor = 8
     distance = 2
@@ -69,18 +74,24 @@ def singleLane(XYZ, blocks=standard_modern_lane_composition):
         factor=factor,
     )
     roadSurface = cleanLanes(roadSurface)
+
+    walkway = maths.curveSurface(
+        np.array(XYZ),
+        distance + 3,
+        resolution=0,
+        pixelPerfect=False,
+        factor=4,
+        start=3,
+    )
+    walkway = cleanLanes(walkway)
 
     road_surface = blocks.get("road_surface")
     structure = blocks.get("structure")
+
     for lane in roadSurface:
         for xyz in roadSurface[lane]:
-            main.setBlock(
-                random.choices(
-                    list(road_surface.keys()),
-                    weights=road_surface.values(),
-                    k=1,
-                )[0],
-                xyz,
+            main.fillBlock(
+                "air", (xyz[0], xyz[1], xyz[2], xyz[0], xyz[1] + 4, xyz[2])
             )
             main.setBlock(
                 random.choices(
@@ -90,26 +101,55 @@ def singleLane(XYZ, blocks=standard_modern_lane_composition):
                 )[0],
                 (xyz[0], xyz[1] - 1, xyz[2]),
             )
+            main.setBlock(
+                random.choices(
+                    list(road_surface.keys()),
+                    weights=road_surface.values(),
+                    k=1,
+                )[0],
+                xyz,
+            )
 
     lines = blocks.get("lines")
-    counterSegments = 0
     for lane in roadMarkings:
         for xyz in roadMarkings[lane]:
-            if lane == -1 or lane == 1:
-                counterSegments += 1
-                if counterSegments % 4 != 0:
-                    main.setBlock(
-                        random.choices(
-                            list(lines.keys()),
-                            weights=lines.values(),
-                            k=1,
-                        )[0],
-                        (xyz[0], xyz[1], xyz[2]),
-                    )
+            if lane == -1:
+                main.setBlock(
+                    random.choices(
+                        list(structure.keys()),
+                        weights=structure.values(),
+                        k=1,
+                    )[0],
+                    (xyz[0], xyz[1] - 1, xyz[2]),
+                )
+                main.setBlock(
+                    random.choices(
+                        list(lines.keys()),
+                        weights=lines.values(),
+                        k=1,
+                    )[0],
+                    (xyz[0], xyz[1], xyz[2]),
+                )
+
+    for lane in walkway:
+        for xyz in walkway[lane]:
+            if lane <= -1:
+                main.fillBlock(
+                    "air",
+                    (xyz[0], xyz[1] + 1, xyz[2], xyz[0], xyz[1] + 4, xyz[2]),
+                )
+                main.fillBlock(
+                    random.choices(
+                        list(structure.keys()),
+                        weights=structure.values(),
+                        k=1,
+                    )[0],
+                    (xyz[0], xyz[1] + 1, xyz[2], xyz[0], xyz[1] - 1, xyz[2]),
+                )
 
 
-def singleLane2(XYZ, blocks=standard_modern_lane_composition):
-    """Generate a single and simple modern lane."""
+def singleLaneRight(XYZ, blocks=standard_modern_lane_composition):
+    """Right side."""
 
     factor = 8
     distance = 2
@@ -133,20 +173,24 @@ def singleLane2(XYZ, blocks=standard_modern_lane_composition):
     )
     roadSurface = cleanLanes(roadSurface)
 
-    road_surface = {
-        "stone": 3,
-        "andesite": 1,
-    }
+    walkway = maths.curveSurface(
+        np.array(XYZ),
+        distance + 3,
+        resolution=0,
+        pixelPerfect=False,
+        factor=4,
+        start=3,
+    )
+    walkway = cleanLanes(walkway)
+
+    road_surface = blocks.get("road_surface")
     structure = blocks.get("structure")
+    central_lines = blocks.get("central_lines")
+
     for lane in roadSurface:
         for xyz in roadSurface[lane]:
-            main.setBlock(
-                random.choices(
-                    list(road_surface.keys()),
-                    weights=road_surface.values(),
-                    k=1,
-                )[0],
-                xyz,
+            main.fillBlock(
+                "air", (xyz[0], xyz[1], xyz[2], xyz[0], xyz[1] + 4, xyz[2])
             )
             main.setBlock(
                 random.choices(
@@ -156,22 +200,89 @@ def singleLane2(XYZ, blocks=standard_modern_lane_composition):
                 )[0],
                 (xyz[0], xyz[1] - 1, xyz[2]),
             )
+            main.setBlock(
+                random.choices(
+                    list(road_surface.keys()),
+                    weights=road_surface.values(),
+                    k=1,
+                )[0],
+                xyz,
+            )
 
     lines = blocks.get("lines")
     counterSegments = 0
     for lane in roadMarkings:
         for xyz in roadMarkings[lane]:
-            if lane == -1 or lane == 1:
+            if lane == 1:
+                main.setBlock(
+                    random.choices(
+                        list(structure.keys()),
+                        weights=structure.values(),
+                        k=1,
+                    )[0],
+                    (xyz[0], xyz[1] - 1, xyz[2]),
+                )
+                main.setBlock(
+                    random.choices(
+                        list(lines.keys()),
+                        weights=lines.values(),
+                        k=1,
+                    )[0],
+                    (xyz[0], xyz[1], xyz[2]),
+                )
+
+            if lane == -1:  # Central Lane.
                 counterSegments += 1
                 if counterSegments % 4 != 0:
                     main.setBlock(
                         random.choices(
-                            list(lines.keys()),
-                            weights=lines.values(),
+                            list(structure.keys()),
+                            weights=structure.values(),
+                            k=1,
+                        )[0],
+                        (xyz[0], xyz[1] - 1, xyz[2]),
+                    )
+                    main.setBlock(
+                        random.choices(
+                            list(central_lines.keys()),
+                            weights=central_lines.values(),
                             k=1,
                         )[0],
                         (xyz[0], xyz[1], xyz[2]),
                     )
+                else:
+                    main.setBlock(
+                        random.choices(
+                            list(structure.keys()),
+                            weights=structure.values(),
+                            k=1,
+                        )[0],
+                        (xyz[0], xyz[1] - 1, xyz[2]),
+                    )
+                    main.setBlock(
+                        random.choices(
+                            list(road_surface.keys()),
+                            weights=road_surface.values(),
+                            k=1,
+                        )[0],
+                        (xyz[0], xyz[1], xyz[2]),
+                    )
+
+    for lane in walkway:
+        for xyz in walkway[lane]:
+            if lane >= 1:
+                main.fillBlock(
+                    "air",
+                    (xyz[0], xyz[1] + 1, xyz[2], xyz[0], xyz[1] + 4, xyz[2]),
+                )
+                main.fillBlock(
+                    random.choices(
+                        list(structure.keys()),
+                        weights=structure.values(),
+                        k=1,
+                    )[0],
+                    (xyz[0], xyz[1] + 1, xyz[2], xyz[0], xyz[1] - 1, xyz[2]),
+                )
 
 
 ############################ Roads Generator ###########################
@@ -179,7 +290,7 @@ def singleLane2(XYZ, blocks=standard_modern_lane_composition):
 
 class RoadCurve:
     def __init__(self, roadData, XYZ):
-        print("road:", XYZ)
+        print("road, first input:", XYZ)
         """Create points that forms the lanes depending of the roadData."""
         self.roadData = roadData
         self.XYZ = XYZ
@@ -218,142 +329,6 @@ class RoadCurve:
             if i in lanes or lanes == []:
                 lanesDict[i] = self.lanesXYZ[i]
         return lanesDict
-
-
-def DELETEintersection(roadsData, centerPoint, mainRoads, sideRoads):
-    """
-    [summary]
-
-    [extended_summary]
-
-    Args:
-        roadsData (dict): standard_modern_lanes_agencement
-        centerPoint (tuple): (x, y, z)
-        mainRoads (list): {0:((x, y, z), (x, y, z)), 1:((x, y, z), (x, y, z))}
-        sideRoads ([type]): {0:[(x, y, z), 1:(x, y, z), -1:(x, y, z), 2:(x, y, z)}
-    """
-    # Save all the lanes.
-    lanes = {}
-
-    # Set the side roads.
-    for i in roadsData["sideRoads"]:
-        sideRoad = RoadCurve(
-            roadsData["sideRoads"].get(i), (sideRoads.get(i), centerPoint)
-        )
-        sideRoad.setLanes()
-        lanes[sideRoads[i]] = sideRoad.getLanes()
-
-    # Set the main roads.
-    for i in roadsData["mainRoads"]:
-        mainRoad = RoadCurve(
-            roadsData["mainRoads"].get(i), (mainRoads.get(i)[0], centerPoint)
-        )
-        mainRoad.setLanes()
-        lanes[mainRoads[i][0]] = mainRoad.getLanes()
-        # We don't want to inverse the orientation of the main road.
-        mainRoad = RoadCurve(
-            roadsData["mainRoads"].get(i), (centerPoint, mainRoads.get(i)[1])
-        )
-        mainRoad.setLanes()
-        # But we want to save it like the others.
-        mainRoad = RoadCurve(
-            roadsData["mainRoads"].get(i),
-            (
-                mainRoads.get(i)[1],
-                centerPoint,
-            ),
-        )
-        lanes[mainRoads[i][1]] = mainRoad.getLanes()
-
-    # Sort all the points in rotation order.
-    points = []
-    points.extend([xyz[i] for xyz in mainRoads.values() for i in range(2)])
-    points.extend([xyz for xyz in sideRoads.values()])
-    points = maths.sortRotation(points)
-
-    # Compute the curve between each road.
-    y = 150
-    for i in range(len(points)):
-
-        a = random.randint(0, 6)
-        if a == 0:
-            b = "blue_concrete"
-        elif a == 1:
-            b = "red_concrete"
-        elif a == 2:
-            b = "green_concrete"
-        elif a == 3:
-            b = "yellow_concrete"
-        elif a == 4:
-            b = "pink_concrete"
-        elif a == 5:
-            b = "orange_concrete"
-        else:
-            b = "brown_concrete"
-
-        line0 = (
-            lanes[points[i]][max(lanes[points[i]])][0],
-            lanes[points[i]][max(lanes[points[i]])][1],
-        )
-        line1 = (
-            lanes[points[i - 1]][min(lanes[points[-1]])][0],
-            lanes[points[i - 1]][min(lanes[points[-1]])][1],
-        )
-
-        # Compute the curve.
-        intersectionPointsTemp = maths.curveCornerIntersectionPoints(
-            line0, line1, 10, angleAdaptation=False
-        )
-
-        # Complete the points of the curve with a few points of the line
-        # to stabilize the curve.
-        intersectionPoints = [(line0[0])]
-        [
-            intersectionPoints.append((round(xz[0]), y, round(xz[1])))
-            for xz in intersectionPointsTemp
-            if (round(xz[0]), y, round(xz[1])) not in intersectionPoints
-        ]
-        intersectionPoints.insert(
-            1, maths.middleLine(intersectionPoints[1], intersectionPoints[0])
-        )
-        intersectionPoints.insert(
-            2, maths.middleLine(intersectionPoints[1], intersectionPoints[2])
-        )
-        intersectionPoints.append((line1[0]))
-        # intersectionPoints.insert(
-        #     -1,
-        #     maths.middleLine(intersectionPoints[-2], intersectionPoints[-1]),
-        # )
-        # intersectionPoints.insert(
-        #     -2,
-        #     maths.middleLine(intersectionPoints[-2], intersectionPoints[-3]),
-        # )
-
-        # Generate the curve.
-        for key, value in lanes.items():
-            for __, value1 in value.items():
-                if intersectionPoints[0] in value1:
-                    # Key found.
-                    for __, j in enumerate(mainRoads):
-                        if key in mainRoads[j]:
-                            curveRoad = RoadCurve(
-                                roadsData["mainRoads"][j], intersectionPoints
-                            )
-                            curveRoad.setLanes(
-                                [max(roadsData["mainRoads"][j]["lanes"])]
-                            )
-                    # for __, j in enumerate(sideRoads):
-                    #     print(sideRoads[j])
-                    #     if key == sideRoads[j]:
-                    #         print(
-                    #             roadsData["sideRoads"][j], intersectionPoints
-                    #         )
-                    #         curveRoad = Road(
-                    #             roadsData["sideRoads"][j], intersectionPoints
-                    #         )
-                    #         curveRoad.setLanes(
-                    #             [min(roadsData["sideRoads"][j]["lanes"])]
-                    #         )
 
 
 def intersection(
@@ -474,7 +449,7 @@ def intersection(
                 intersectionPoints[i][2],
             )
 
-        singleLane2(
+        singleLaneRight(
             intersectionPoints, blocks=standard_modern_lane_composition
         )
 
@@ -510,9 +485,8 @@ def intersection(
 
 standard_modern_lane_agencement = {
     "lanes": {
-        -1: {"type": singleLane, "centerDistance": -3},
-        1: {"type": singleLane, "centerDistance": 3},
-        2: {"type": singleLane, "centerDistance": 6},
+        -1: {"type": singleLaneLeft, "centerDistance": -3},
+        1: {"type": singleLaneRight, "centerDistance": 3},
     },
 }
 
@@ -521,36 +495,153 @@ standard_modern_lanes_agencement = {
     "mainRoads": {
         0: {
             "lanes": {
-                -1: {"type": singleLane, "centerDistance": -5},
-                0: {"type": singleLane, "centerDistance": 0},
-                1: {"type": singleLane2, "centerDistance": 5},
+                -1: {"type": singleLaneLeft, "centerDistance": -5},
+                0: {"type": singleLaneLeft, "centerDistance": 0},
+                1: {"type": singleLaneRight, "centerDistance": 5},
             }
         },
         1: {
             "lanes": {
-                -1: {"type": singleLane2, "centerDistance": -5},
-                0: {"type": singleLane2, "centerDistance": 0},
-                1: {"type": singleLane2, "centerDistance": 5},
+                -1: {"type": singleLaneRight, "centerDistance": -5},
+                0: {"type": singleLaneRight, "centerDistance": 0},
+                1: {"type": singleLaneRight, "centerDistance": 5},
             }
         },
     },
     "sideRoads": {
         0: {
             "lanes": {
-                -1: {"type": singleLane, "centerDistance": -5},
-                1: {"type": singleLane, "centerDistance": 0},
-                2: {"type": singleLane, "centerDistance": 5},
+                -1: {"type": singleLaneLeft, "centerDistance": -5},
+                1: {"type": singleLaneLeft, "centerDistance": 0},
+                2: {"type": singleLaneLeft, "centerDistance": 5},
             }
         },
         1: {
             "lanes": {
-                -1: {"type": singleLane, "centerDistance": -5},
-                1: {"type": singleLane, "centerDistance": 0},
-                2: {"type": singleLane, "centerDistance": 5},
+                -1: {"type": singleLaneLeft, "centerDistance": -5},
+                1: {"type": singleLaneLeft, "centerDistance": 0},
+                2: {"type": singleLaneLeft, "centerDistance": 5},
             }
         },
     },
 }
+
+
+if __name__ == "__main__":
+    debug = False
+
+    # Find the area.
+    area = minecraft.requestBuildArea()
+    area = map.areaCoordinates(
+        (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
+    )
+    print("area:", area)
+
+    # Generate data to work with.
+    map.heightmap(
+        area[0],
+        area[1],
+        mapName="heightmap.png",
+        biomeName="heightmap_biome.png",
+    )
+    map.blur("heightmap_biome.png", name="heightmap_biome.png", factor=11)
+    map.sobel("heightmap.png")
+    map.blur("heightmap_biome.png", name="heightmap_medianBlur.png", factor=11)
+    pixel_graph_row, pixel_graph_col, pixel_graph_data, coordinates = map.skel(
+        "heightmap_medianBlur.png", "heightmap_skeletonize.png"
+    )
+    lines, intersections, center = map.parseGraph(
+        pixel_graph_row, pixel_graph_col
+    )
+
+    if debug:
+        print(center)
+        print(lines)
+        print(intersections)
+
+    # Colorization
+
+    # Lines
+    path = "heightmap_skeletonize_color.png"
+    im = Image.open("heightmap_skeletonize.png")
+    width, height = im.size
+    # img = Image.new(mode="RGB", size=(width, height))
+    img = Image.open("heightmap_sobel.png")
+    for i in range(len(lines)):
+        r, g, b = (
+            random.randint(0, 255),
+            random.randint(0, 255),
+            random.randint(0, 255),
+        )
+        for j in range(len(lines[i])):
+            img.putpixel(
+                (
+                    int(coordinates[lines[i][j]][0]),
+                    int(coordinates[lines[i][j]][1]),
+                ),
+                (r + j, g + j, b + j),
+            )
+    img.save(path, "PNG")
+
+    # Centers
+    img = Image.open(path)
+    for i in range(len(center)):
+        if debug:
+            print(coordinates[center[i]])
+        img.putpixel(
+            (int(coordinates[center[i]][0]), int(coordinates[center[i]][1])),
+            (255, 255, 0),
+        )
+    img.save(path, "PNG")
+
+    # Intersections
+    for i in range(len(intersections)):
+        intersection = []
+        for j in range(len(intersections[i])):
+            intersection.append(coordinates[intersections[i][j]])
+        if debug:
+            print(intersection)
+
+        img = Image.open(path)
+        for i in range(len(intersection)):
+            img.putpixel(
+                (int(intersection[i][0]), int(intersection[i][1])),
+                (255, 0, 255),
+            )
+        img.save(path, "PNG")
+
+    # Generation
+    for i in range(len(lines)):
+        for j in range(len(lines[i])):
+            xz = map.irlToMc(area[0], coordinates[lines[i][j]])
+            lines[i][j] = xz
+
+    # Simplification
+    from simplification.cutil import simplify_coords
+
+    for i in range(len(lines)):
+        print(lines[i])
+        lines[i] = simplify_coords(lines[i], 1.0)
+
+    for i in range(len(lines)):
+        for j in range(len(lines[i])):
+            xyz = map.findGround(area[0], lines[i][j])
+            lines[i][j] = xyz
+
+    for i in range(len(lines)):  # HERE --------------------------------------
+        road = RoadCurve(standard_modern_lane_agencement, lines[i])
+        road.setLanes()
+
+
+#     standard_modern_lane_agencement,
+#     (
+#         (70, 70 + 15, -20),
+#         (160, 68 + 15, -128),
+#         (235, 64 + 15, -215),
+#     ),
+# )
+
+# roadTest.setLanes()
 
 
 # intersection(
