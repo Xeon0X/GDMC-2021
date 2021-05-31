@@ -3,6 +3,7 @@ import maths
 import math
 import main
 import map
+import schematic
 import interfaceUtils as minecraft
 import random
 
@@ -49,6 +50,8 @@ def cleanLanes(lanes):
 
 ############################ Lanes functions ###########################
 
+housesCoordinates = []
+
 
 def singleLaneLeft(XYZ, blocks=standard_modern_lane_composition):
     """Left side."""
@@ -84,6 +87,16 @@ def singleLaneLeft(XYZ, blocks=standard_modern_lane_composition):
         start=3,
     )
     walkway = cleanLanes(walkway)
+
+    houses = maths.curveSurface(
+        np.array(XYZ),
+        distance + 18,
+        resolution=0,
+        pixelPerfect=False,
+        factor=1,
+        start=distance + 17,
+    )
+    houses = cleanLanes(houses)
 
     road_surface = blocks.get("road_surface")
     structure = blocks.get("structure")
@@ -134,6 +147,7 @@ def singleLaneLeft(XYZ, blocks=standard_modern_lane_composition):
     for lane in walkway:
         for xyz in walkway[lane]:
             if lane <= -1:
+                counterSegments = 0
                 main.fillBlock(
                     "air",
                     (xyz[0], xyz[1] + 1, xyz[2], xyz[0], xyz[1] + 4, xyz[2]),
@@ -146,6 +160,14 @@ def singleLaneLeft(XYZ, blocks=standard_modern_lane_composition):
                     )[0],
                     (xyz[0], xyz[1] + 1, xyz[2], xyz[0], xyz[1] - 1, xyz[2]),
                 )
+
+    counterSegments = 0
+    for lane in houses:
+        for xyz in houses[lane]:
+            if lane <= -1:
+                counterSegments += 1
+                if counterSegments % 25 == 0:
+                    housesCoordinates.append((xyz[0], xyz[1], xyz[2]))
 
 
 def singleLaneRight(XYZ, blocks=standard_modern_lane_composition):
@@ -182,6 +204,16 @@ def singleLaneRight(XYZ, blocks=standard_modern_lane_composition):
         start=3,
     )
     walkway = cleanLanes(walkway)
+
+    houses = maths.curveSurface(
+        np.array(XYZ),
+        distance + 18,
+        resolution=0,
+        pixelPerfect=False,
+        factor=1,
+        start=distance + 17,
+    )
+    houses = cleanLanes(houses)
 
     road_surface = blocks.get("road_surface")
     structure = blocks.get("structure")
@@ -283,6 +315,14 @@ def singleLaneRight(XYZ, blocks=standard_modern_lane_composition):
                     )[0],
                     (xyz[0], xyz[1] + 1, xyz[2], xyz[0], xyz[1] - 1, xyz[2]),
                 )
+
+    counterSegments = 0
+    for lane in houses:
+        for xyz in houses[lane]:
+            if lane >= 1:
+                counterSegments += 1
+                if counterSegments % 25 == 0:
+                    housesCoordinates.append((xyz[0], xyz[1], xyz[2]))
 
 
 ############################ Roads Generator ###########################
@@ -620,7 +660,8 @@ if __name__ == "__main__":
     from simplification.cutil import simplify_coords
 
     for i in range(len(lines)):
-        print(lines[i])
+        if debug:
+            print(lines[i])
         lines[i] = simplify_coords(lines[i], 1.0)
 
     for i in range(len(lines)):
@@ -631,6 +672,59 @@ if __name__ == "__main__":
     for i in range(len(lines)):  # HERE --------------------------------------
         road = RoadCurve(standard_modern_lane_agencement, lines[i])
         road.setLanes()
+        # print(road.getLanes(), "LANES ***********")
+
+    # i = 5
+    # road = RoadCurve(standard_modern_lane_agencement, lines[i])
+    # road.setLanes()
+    alreadyGenerated = []
+    print(housesCoordinates)
+    for i in range(len(housesCoordinates)):
+        pos = housesCoordinates[i]
+        print(pos, "pos0")
+        base = map.findGround(area[0], pos)
+        if base != None:
+            print(pos, "pos1")
+            pos1 = (
+                pos[0] - random.randint(3, 6),
+                base[1],
+                pos[2] - random.randint(3, 6),
+            )
+            pos2 = (
+                pos[0] + random.randint(3, 6),
+                base[1],
+                pos[2] + random.randint(3, 6),
+            )
+            pos3 = (
+                pos1[0],
+                base[1],
+                pos2[2],
+            )
+            pos4 = (
+                pos2[0]
+                base[1],
+                pos1[2]
+            )
+            Ypos1 = map.findGround(area[0], pos1)
+            Ypos2 = map.findGround(area[0], pos2)
+            Ypos3 = map.findGround(area[0], pos3)
+            Ypos4 = map.findGround(area[0], pos4)
+
+            if Ypos1 != None and Ypos2 != None and Ypos3 != None, Ypos4 != None:
+
+                pos2 = pos2[0], max(Ypos1[1], Ypos2[1], base[1]), pos2[2]
+                pos1 = pos1[0], max(Ypos1[1], Ypos2[1], base[1]), pos1[2]
+
+                print(pos, pos1, pos2, Ypos1, Ypos2, "done")
+                door = ["south", "north", "east", "west"]
+                cb = random.randint(0, 3)
+                schematic.house(
+                    pos1,
+                    pos2,
+                    door[cb],
+                    random.randint(0, 1),
+                    min(Ypos1[1], Ypos2[1], base[1]),
+                )
 
 
 #     standard_modern_lane_agencement,

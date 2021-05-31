@@ -335,7 +335,23 @@ typel = cutinterior(pos1, pos2, [[79, 4, 27], [79, 4, 28]])
 colorinterior(typel)
 
 
-def house(pos1, pos2, mat, door, varwall):
+def house(pos1, pos2, door, varwall, base):
+
+    mat = [
+        "oak_log",
+        "oak_planks",
+        "oak_stairs",
+        "white_terracotta",
+        "stone",
+        "stone_stairs",
+        "oak_door",
+        "stone_stairs",
+        "glass_pane",
+        "spruce_stairs",
+        "spruce_planks",
+        "spruce_slab",
+        "oak_slab",
+    ]
     # -------- Foundations --------#
     avpos = [pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2]]
     avpos2 = [
@@ -343,7 +359,7 @@ def house(pos1, pos2, mat, door, varwall):
         pos1[1],
         pos1[2] - 2,
         pos2[0] + 2,
-        pos2[1],
+        base,
         pos2[2] + 2,
     ]
     fill(mat[4], avpos2)
@@ -705,6 +721,7 @@ def house(pos1, pos2, mat, door, varwall):
 
     # step 1
     rooftype = random.randint(1, 5)
+    rooftype = 4
     if rooftype <= 3:
         if rooftype <= 2:
             if door == "north" or door == "south":
@@ -2023,10 +2040,11 @@ def house(pos1, pos2, mat, door, varwall):
                     fill(mat[1], roofwall)
 
     # -------- fireplace --------#
+
     isfireplace = 0
     if (pos2[0] - pos1[0]) > 7 and (pos2[2] - pos1[2]) > 7:
         isfireplace = random.randint(1, 5)
-    if isfireplace > 2:
+    if isfireplace > 2 and form != "mono-pitched":
         if door == "north":
             var = random.randint(1, 2)
             if var == 1:
@@ -2363,12 +2381,136 @@ def house(pos1, pos2, mat, door, varwall):
     # interior(pos1,pos2,doorpos)
 
 
-# pos1 = [130,3,126]
-# pos2 = [138,3,140]
-# door = ["south","north","east","west"]
-# cb = random.randint(0,3)
-# mat = ["oak_log","oak_planks","oak_stairs","white_terracotta","stone","stone_stairs","oak_door","stone_stairs","glass_pane","spruce_stairs","spruce_planks","spruce_slab","oak_slab"]
-# pos = [pos1[0]-2,pos1[1],pos1[2]-2,pos2[0]+2,pos2[1]+20,pos2[2]+2]
-# fill("air",pos)
-# pos = [pos1[0],pos1[1],pos1[2],pos2[0],pos2[1],pos2[2]]
-# house(pos1,pos2,mat,door[cb],1)
+if __name__ == "__main__":
+    pos1 = [260, 3, 180]
+    pos2 = [269, 3, 189]
+    door = ["south", "north", "east", "west"]
+    cb = random.randint(0, 3)
+    mat = [
+        "oak_log",
+        "oak_planks",
+        "oak_stairs",
+        "white_terracotta",
+        "stone",
+        "stone_stairs",
+        "oak_door",
+        "stone_stairs",
+        "glass_pane",
+        "spruce_stairs",
+        "spruce_planks",
+        "spruce_slab",
+        "oak_slab",
+    ]
+    pos = [
+        pos1[0] - 2,
+        pos1[1],
+        pos1[2] - 2,
+        pos2[0] + 2,
+        pos2[1] + 20,
+        pos2[2] + 2,
+    ]
+    fill("air", pos)
+    pos = [pos1[0], pos1[1], pos1[2], pos2[0], pos2[1], pos2[2]]
+    # house(pos1,pos2,mat,door[cb],1)
+    for elt in range(10):
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 1 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 1 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 2 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 2 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 3 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 3 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 4 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 4 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 5 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 5 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 6 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 6 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 7 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 7 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 8 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 8 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 9 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 9 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 10 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 10 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos = [
+            pos1[0],
+            pos1[1],
+            pos1[2] + 11 * 15,
+            pos2[0],
+            pos2[1],
+            pos2[2] + 11 * 15,
+        ]
+        house([pos[0], pos[1], pos[2]], [pos[3], pos[4], pos[5]], "south", 1)
+        pos1[0], pos2[0] = pos1[0] + 15, pos2[0] + 15
