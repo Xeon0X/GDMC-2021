@@ -550,7 +550,6 @@ def curveSurface(
             resolution=7,
         )
     """
-    print("points:", points, "end points")
     if len((points)) >= 3:
         # Calculate resolution of the main curve depending of the total curve length.
         lenCurve = 0
