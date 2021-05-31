@@ -10,6 +10,8 @@ import random
 from PIL import Image
 from collections import Counter
 
+alreadyGenerated = []
+
 
 ######################## Lanes materials presets #######################
 
@@ -90,11 +92,11 @@ def singleLaneLeft(XYZ, blocks=standard_modern_lane_composition):
 
     houses = maths.curveSurface(
         np.array(XYZ),
-        distance + 18,
+        distance + 14,
         resolution=0,
         pixelPerfect=False,
         factor=1,
-        start=distance + 17,
+        start=distance + 13,
     )
     houses = cleanLanes(houses)
 
@@ -122,6 +124,7 @@ def singleLaneLeft(XYZ, blocks=standard_modern_lane_composition):
                 )[0],
                 xyz,
             )
+            alreadyGenerated.append((xyz[0], xyz[2]))
 
     lines = blocks.get("lines")
     for lane in roadMarkings:
@@ -160,13 +163,14 @@ def singleLaneLeft(XYZ, blocks=standard_modern_lane_composition):
                     )[0],
                     (xyz[0], xyz[1] + 1, xyz[2], xyz[0], xyz[1] - 1, xyz[2]),
                 )
+                alreadyGenerated.append((xyz[0], xyz[2]))
 
     counterSegments = 0
     for lane in houses:
         for xyz in houses[lane]:
             if lane <= -1:
                 counterSegments += 1
-                if counterSegments % 25 == 0:
+                if counterSegments % 10 == 0:
                     housesCoordinates.append((xyz[0], xyz[1], xyz[2]))
 
 
@@ -207,11 +211,11 @@ def singleLaneRight(XYZ, blocks=standard_modern_lane_composition):
 
     houses = maths.curveSurface(
         np.array(XYZ),
-        distance + 18,
+        distance + 14,
         resolution=0,
         pixelPerfect=False,
         factor=1,
-        start=distance + 17,
+        start=distance + 13,
     )
     houses = cleanLanes(houses)
 
@@ -240,6 +244,7 @@ def singleLaneRight(XYZ, blocks=standard_modern_lane_composition):
                 )[0],
                 xyz,
             )
+            alreadyGenerated.append((xyz[0], xyz[2]))
 
     lines = blocks.get("lines")
     counterSegments = 0
@@ -315,13 +320,14 @@ def singleLaneRight(XYZ, blocks=standard_modern_lane_composition):
                     )[0],
                     (xyz[0], xyz[1] + 1, xyz[2], xyz[0], xyz[1] - 1, xyz[2]),
                 )
+                alreadyGenerated.append((xyz[0], xyz[2]))
 
     counterSegments = 0
     for lane in houses:
         for xyz in houses[lane]:
             if lane >= 1:
                 counterSegments += 1
-                if counterSegments % 25 == 0:
+                if counterSegments % 10 == 0:
                     housesCoordinates.append((xyz[0], xyz[1], xyz[2]))
 
 
@@ -677,14 +683,15 @@ if __name__ == "__main__":
     # i = 5
     # road = RoadCurve(standard_modern_lane_agencement, lines[i])
     # road.setLanes()
-    alreadyGenerated = []
-    print(housesCoordinates)
+    rejected = []
+    accepted = []
+    # print(housesCoordinates)
     for i in range(len(housesCoordinates)):
         pos = housesCoordinates[i]
-        print(pos, "pos0")
+        # print(pos, "pos0")
         base = map.findGround(area[0], pos)
         if base != None:
-            print(pos, "pos1")
+            # print(pos, "pos1")
             pos1 = (
                 pos[0] - random.randint(3, 6),
                 base[1],
@@ -701,31 +708,86 @@ if __name__ == "__main__":
                 pos2[2],
             )
             pos4 = (
-                pos2[0]
+                pos2[0],
                 base[1],
-                pos1[2]
+                pos1[2],
             )
+            # print(pos1, pos2, pos3, pos4, "pos")
             Ypos1 = map.findGround(area[0], pos1)
             Ypos2 = map.findGround(area[0], pos2)
             Ypos3 = map.findGround(area[0], pos3)
             Ypos4 = map.findGround(area[0], pos4)
 
-            if Ypos1 != None and Ypos2 != None and Ypos3 != None, Ypos4 != None:
+            if (
+                Ypos1 != None
+                and Ypos2 != None
+                and Ypos3 != None
+                and Ypos4 != None
+            ):
 
-                pos2 = pos2[0], max(Ypos1[1], Ypos2[1], base[1]), pos2[2]
-                pos1 = pos1[0], max(Ypos1[1], Ypos2[1], base[1]), pos1[2]
-
-                print(pos, pos1, pos2, Ypos1, Ypos2, "done")
-                door = ["south", "north", "east", "west"]
-                cb = random.randint(0, 3)
-                schematic.house(
-                    pos1,
-                    pos2,
-                    door[cb],
-                    random.randint(0, 1),
-                    min(Ypos1[1], Ypos2[1], base[1]),
+                pos2 = (
+                    pos2[0],
+                    max(Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]),
+                    pos2[2],
                 )
+                pos1 = (
+                    pos1[0],
+                    max(Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]),
+                    pos1[2],
+                )
+                if (
+                    (pos1[0], pos1[2]) not in alreadyGenerated
+                    and (
+                        pos2[0],
+                        pos2[2],
+                    )
+                    not in alreadyGenerated
+                    and (pos1[0], pos2[2]) not in alreadyGenerated
+                    and (pos2[0], pos1[2])
+                ):  # HERE, remove print and find why house gen on self
 
+                    for xi in range(
+                        -5,
+                        (max(pos1[0], pos2[0]) - min(pos1[0], pos2[0])) + 5,
+                    ):
+                        for yi in range(
+                            -5,
+                            (max(pos1[2], pos2[2]) - min(pos1[2], pos2[2]))
+                            + 5,
+                        ):
+                            alreadyGenerated.append(
+                                (
+                                    min(pos1[0], pos2[0]) + xi,
+                                    min(pos1[2], pos2[2]) + yi,
+                                )
+                            )
+
+                    door = ["south", "north", "east", "west"]
+                    cb = random.randint(0, 3)
+                    schematic.house(
+                        pos1,
+                        pos2,
+                        door[cb],
+                        random.randint(0, 1),
+                        min(Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]),
+                    )
+                    accepted.append(
+                        (
+                            pos1[0],
+                            pos1[2],
+                            pos2[0],
+                            pos2[2],
+                        )
+                    )
+                else:
+                    rejected.append(
+                        (
+                            pos1[0],
+                            pos1[2],
+                            pos2[0],
+                            pos2[2],
+                        )
+                    )
 
 #     standard_modern_lane_agencement,
 #     (

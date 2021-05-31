@@ -184,10 +184,7 @@ def curve(points, number_true_pts=40, debug=False):
     """
     # Remove duplicates.
     points = tuple(map(tuple, points))
-    print(points, "before")
     points = sorted(set(points), key=points.index)
-
-    print(points, "after")
 
     x_sample = []
     y_sample = []
