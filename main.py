@@ -26,3 +26,7 @@ def setLine(block, xyz0, xyz1, pixelPerfect=True):
     points = maths.line(xyz0, xyz1, pixelPerfect)
     for i in points:
         setBlock(block, (i[0], i[1], i[2]))
+
+
+if __name__ == "__main__":
+    print("Please run roads.py instead.")
