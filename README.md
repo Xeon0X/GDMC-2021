@@ -22,3 +22,6 @@ requirements.txt. Load the Minecraft world with the forge mod and run
 main.py, we are sorry about that). If the program don't launch
 correctly, try again (and contact us). If the program works, you will
 see in the terminal the area selected, and after some time, "Done".
+
+This is our first project, so please be careful when reading our code, 
+and tell us if there are better things to do somewhere.
