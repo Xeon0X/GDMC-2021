@@ -13,7 +13,7 @@ from collections import Counter
 alreadyGenerated = []
 
 
-######################## Lanes materials presets #######################
+######################## Lanes Materials Presets #######################
 
 
 standard_modern_lane_composition = {
@@ -30,7 +30,7 @@ standard_modern_lane_composition = {
 }
 
 
-######################### Additional functions #########################
+######################### Additional Functions #########################
 
 
 def cleanLanes(lanes):
@@ -50,7 +50,7 @@ def cleanLanes(lanes):
     return cleanLanes
 
 
-############################ Lanes functions ###########################
+############################ Lanes Functions ###########################
 
 housesCoordinates = []
 
@@ -572,221 +572,243 @@ standard_modern_lanes_agencement = {
     },
 }
 
-
+autoMode = 1
 if __name__ == "__main__":
-    debug = False
+    if autoMode == 1:
+        debug = False
 
-    # Find the area.
-    area = minecraft.requestBuildArea()
-    area = map.areaCoordinates(
-        (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
-    )
-    print("area:", area)
-
-    # Generate data to work with.
-    map.heightmap(
-        area[0],
-        area[1],
-        mapName="heightmap.png",
-        biomeName="heightmap_biome.png",
-    )
-    map.blur("heightmap_biome.png", name="heightmap_biome.png", factor=11)
-    map.sobel("heightmap.png")
-    map.blur("heightmap_biome.png", name="heightmap_medianBlur.png", factor=11)
-    pixel_graph_row, pixel_graph_col, pixel_graph_data, coordinates = map.skel(
-        "heightmap_medianBlur.png", "heightmap_skeletonize.png"
-    )
-    lines, intersections, center = map.parseGraph(
-        pixel_graph_row, pixel_graph_col
-    )
-
-    if debug:
-        print(center)
-        print(lines)
-        print(intersections)
-
-    # Colorization
-
-    # Lines
-    path = "heightmap_skeletonize_color.png"
-    im = Image.open("heightmap_skeletonize.png")
-    width, height = im.size
-    # img = Image.new(mode="RGB", size=(width, height))
-    img = Image.open("heightmap_sobel.png")
-    for i in range(len(lines)):
-        r, g, b = (
-            random.randint(0, 255),
-            random.randint(0, 255),
-            random.randint(0, 255),
+        # Find the area.
+        area = minecraft.requestBuildArea()
+        area = map.areaCoordinates(
+            (area["xFrom"], area["zFrom"]), (area["xTo"], area["zTo"])
         )
-        for j in range(len(lines[i])):
+        print("area:", area)
+
+        # Generate data to work with.
+        map.heightmap(
+            area[0],
+            area[1],
+            mapName="heightmap.png",
+            biomeName="heightmap_biome.png",
+        )
+        map.blur("heightmap_biome.png", name="heightmap_biome.png", factor=11)
+        map.sobel("heightmap.png")
+        map.blur(
+            "heightmap_biome.png", name="heightmap_medianBlur.png", factor=11
+        )
+        (
+            pixel_graph_row,
+            pixel_graph_col,
+            pixel_graph_data,
+            coordinates,
+        ) = map.skel("heightmap_medianBlur.png", "heightmap_skeletonize.png")
+        lines, intersections, center = map.parseGraph(
+            pixel_graph_row, pixel_graph_col
+        )
+
+        if debug:
+            print(center)
+            print(lines)
+            print(intersections)
+
+        # Colorization
+
+        # Lines
+        path = "heightmap_skeletonize_color.png"
+        im = Image.open("heightmap_skeletonize.png")
+        width, height = im.size
+        # img = Image.new(mode="RGB", size=(width, height))
+        img = Image.open("heightmap_sobel.png")
+        for i in range(len(lines)):
+            r, g, b = (
+                random.randint(0, 255),
+                random.randint(0, 255),
+                random.randint(0, 255),
+            )
+            for j in range(len(lines[i])):
+                img.putpixel(
+                    (
+                        int(coordinates[lines[i][j]][0]),
+                        int(coordinates[lines[i][j]][1]),
+                    ),
+                    (r + j, g + j, b + j),
+                )
+        img.save(path, "PNG")
+
+        # Centers
+        img = Image.open(path)
+        for i in range(len(center)):
+            if debug:
+                print(coordinates[center[i]])
             img.putpixel(
                 (
-                    int(coordinates[lines[i][j]][0]),
-                    int(coordinates[lines[i][j]][1]),
+                    int(coordinates[center[i]][0]),
+                    int(coordinates[center[i]][1]),
                 ),
-                (r + j, g + j, b + j),
-            )
-    img.save(path, "PNG")
-
-    # Centers
-    img = Image.open(path)
-    for i in range(len(center)):
-        if debug:
-            print(coordinates[center[i]])
-        img.putpixel(
-            (int(coordinates[center[i]][0]), int(coordinates[center[i]][1])),
-            (255, 255, 0),
-        )
-    img.save(path, "PNG")
-
-    # Intersections
-    for i in range(len(intersections)):
-        intersection = []
-        for j in range(len(intersections[i])):
-            intersection.append(coordinates[intersections[i][j]])
-        if debug:
-            print(intersection)
-
-        img = Image.open(path)
-        for i in range(len(intersection)):
-            img.putpixel(
-                (int(intersection[i][0]), int(intersection[i][1])),
-                (255, 0, 255),
+                (255, 255, 0),
             )
         img.save(path, "PNG")
 
-    # Generation
-    for i in range(len(lines)):
-        for j in range(len(lines[i])):
-            xz = map.irlToMc(area[0], coordinates[lines[i][j]])
-            lines[i][j] = xz
+        # Intersections
+        for i in range(len(intersections)):
+            intersection = []
+            for j in range(len(intersections[i])):
+                intersection.append(coordinates[intersections[i][j]])
+            if debug:
+                print(intersection)
 
-    # Simplification
-    from simplification.cutil import simplify_coords
+            img = Image.open(path)
+            for i in range(len(intersection)):
+                img.putpixel(
+                    (int(intersection[i][0]), int(intersection[i][1])),
+                    (255, 0, 255),
+                )
+            img.save(path, "PNG")
 
-    for i in range(len(lines)):
-        if debug:
-            print(lines[i])
-        lines[i] = simplify_coords(lines[i], 1.0)
+        # Generation
+        for i in range(len(lines)):
+            for j in range(len(lines[i])):
+                xz = map.irlToMc(area[0], coordinates[lines[i][j]])
+                lines[i][j] = xz
 
-    for i in range(len(lines)):
-        for j in range(len(lines[i])):
-            xyz = map.findGround(area[0], lines[i][j])
-            lines[i][j] = xyz
+        # Simplification
+        from simplification.cutil import simplify_coords
 
-    for i in range(len(lines)):  # HERE --------------------------------------
-        road = RoadCurve(standard_modern_lane_agencement, lines[i])
-        road.setLanes()
-        # print(road.getLanes(), "LANES ***********")
+        for i in range(len(lines)):
+            if debug:
+                print(lines[i])
+            lines[i] = simplify_coords(lines[i], 1.0)
 
-    # i = 5
-    # road = RoadCurve(standard_modern_lane_agencement, lines[i])
-    # road.setLanes()
-    rejected = []
-    accepted = []
-    # print(housesCoordinates)
-    for i in range(len(housesCoordinates)):
-        pos = housesCoordinates[i]
-        # print(pos, "pos0")
-        base = map.findGround(area[0], pos)
-        if base != None:
-            # print(pos, "pos1")
-            pos1 = (
-                pos[0] - random.randint(3, 6),
-                base[1],
-                pos[2] - random.randint(3, 6),
-            )
-            pos2 = (
-                pos[0] + random.randint(3, 6),
-                base[1],
-                pos[2] + random.randint(3, 6),
-            )
-            pos3 = (
-                pos1[0],
-                base[1],
-                pos2[2],
-            )
-            pos4 = (
-                pos2[0],
-                base[1],
-                pos1[2],
-            )
-            # print(pos1, pos2, pos3, pos4, "pos")
-            Ypos1 = map.findGround(area[0], pos1)
-            Ypos2 = map.findGround(area[0], pos2)
-            Ypos3 = map.findGround(area[0], pos3)
-            Ypos4 = map.findGround(area[0], pos4)
+        for i in range(len(lines)):
+            for j in range(len(lines[i])):
+                xyz = map.findGround(area[0], lines[i][j])
+                lines[i][j] = xyz
 
-            if (
-                Ypos1 != None
-                and Ypos2 != None
-                and Ypos3 != None
-                and Ypos4 != None
-            ):
+        for i in range(
+            len(lines)
+        ):  # HERE --------------------------------------
+            road = RoadCurve(standard_modern_lane_agencement, lines[i])
+            road.setLanes()
+            # print(road.getLanes(), "LANES ***********")
 
+        # i = 5
+        # road = RoadCurve(standard_modern_lane_agencement, lines[i])
+        # road.setLanes()
+        rejected = []
+        accepted = []
+        # print(housesCoordinates)
+        for i in range(len(housesCoordinates)):
+            pos = housesCoordinates[i]
+            # print(pos, "pos0")
+            base = map.findGround(area[0], pos)
+            if base != None:
+                # print(pos, "pos1")
+                pos1 = (
+                    pos[0] - random.randint(3, 6),
+                    base[1],
+                    pos[2] - random.randint(3, 6),
+                )
                 pos2 = (
-                    pos2[0],
-                    max(Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]),
+                    pos[0] + random.randint(3, 6),
+                    base[1],
+                    pos[2] + random.randint(3, 6),
+                )
+                pos3 = (
+                    pos1[0],
+                    base[1],
                     pos2[2],
                 )
-                pos1 = (
-                    pos1[0],
-                    max(Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]),
+                pos4 = (
+                    pos2[0],
+                    base[1],
                     pos1[2],
                 )
+                # print(pos1, pos2, pos3, pos4, "pos")
+                Ypos1 = map.findGround(area[0], pos1)
+                Ypos2 = map.findGround(area[0], pos2)
+                Ypos3 = map.findGround(area[0], pos3)
+                Ypos4 = map.findGround(area[0], pos4)
+
                 if (
-                    (pos1[0], pos1[2]) not in alreadyGenerated
-                    and (
+                    Ypos1 != None
+                    and Ypos2 != None
+                    and Ypos3 != None
+                    and Ypos4 != None
+                ):
+
+                    pos2 = (
                         pos2[0],
+                        max(Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]),
                         pos2[2],
                     )
-                    not in alreadyGenerated
-                    and (pos1[0], pos2[2]) not in alreadyGenerated
-                    and (pos2[0], pos1[2])
-                ):  # HERE, remove print and find why house gen on self
+                    pos1 = (
+                        pos1[0],
+                        max(Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]),
+                        pos1[2],
+                    )
+                    if (
+                        (pos1[0], pos1[2]) not in alreadyGenerated
+                        and (
+                            pos2[0],
+                            pos2[2],
+                        )
+                        not in alreadyGenerated
+                        and (pos1[0], pos2[2]) not in alreadyGenerated
+                        and (pos2[0], pos1[2])
+                    ):  # HERE, remove print and find why house gen on self
 
-                    for xi in range(
-                        -5,
-                        (max(pos1[0], pos2[0]) - min(pos1[0], pos2[0])) + 5,
-                    ):
-                        for yi in range(
+                        for xi in range(
                             -5,
-                            (max(pos1[2], pos2[2]) - min(pos1[2], pos2[2]))
+                            (max(pos1[0], pos2[0]) - min(pos1[0], pos2[0]))
                             + 5,
                         ):
-                            alreadyGenerated.append(
-                                (
-                                    min(pos1[0], pos2[0]) + xi,
-                                    min(pos1[2], pos2[2]) + yi,
+                            for yi in range(
+                                -5,
+                                (max(pos1[2], pos2[2]) - min(pos1[2], pos2[2]))
+                                + 5,
+                            ):
+                                alreadyGenerated.append(
+                                    (
+                                        min(pos1[0], pos2[0]) + xi,
+                                        min(pos1[2], pos2[2]) + yi,
+                                    )
                                 )
+
+                        door = ["south", "north", "east", "west"]
+                        cb = random.randint(0, 3)
+                        schematic.house(
+                            pos1,
+                            pos2,
+                            door[cb],
+                            random.randint(0, 1),
+                            min(
+                                Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]
+                            ),
+                        )
+                        accepted.append(
+                            (
+                                pos1[0],
+                                pos1[2],
+                                pos2[0],
+                                pos2[2],
                             )
-
-                    door = ["south", "north", "east", "west"]
-                    cb = random.randint(0, 3)
-                    schematic.house(
-                        pos1,
-                        pos2,
-                        door[cb],
-                        random.randint(0, 1),
-                        min(Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]),
-                    )
-                    accepted.append(
-                        (
-                            pos1[0],
-                            pos1[2],
-                            pos2[0],
-                            pos2[2],
                         )
-                    )
-                else:
-                    rejected.append(
-                        (
-                            pos1[0],
-                            pos1[2],
-                            pos2[0],
-                            pos2[2],
+                    else:
+                        rejected.append(
+                            (
+                                pos1[0],
+                                pos1[2],
+                                pos2[0],
+                                pos2[2],
+                            )
                         )
-                    )
 
-    print("Done")
+    # if autoMode == 0:
+    #     road = RoadCurve(
+    #         standard_modern_lane_agencement,
+    #         [(791, 51, -1588), (751, 51, -1628)],
+    #     )
+    #     road.setLanes()
+    #     print("ok")
+
+    # print("Done")

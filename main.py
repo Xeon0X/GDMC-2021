@@ -2,7 +2,7 @@ import interfaceUtils as minecraft
 import maths
 
 
-USE_BATCHING = True
+USE_BATCHING = False
 
 
 def setBlock(block, xyz):
