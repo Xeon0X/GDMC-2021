@@ -10,6 +10,8 @@ import random
 from PIL import Image
 from collections import Counter
 
+import csv
+
 alreadyGenerated = []
 
 
@@ -48,6 +50,28 @@ def cleanLanes(lanes):
                     (round(xyz[0]), round(xyz[1]), round(xyz[2]))
                 )
     return cleanLanes
+
+
+def csvToList(csvFile, sep):
+    """
+    Parse and save values of a .csv into a list of list.
+
+    Args:
+        csv (.csv): The file.
+        sep (str): The separator.
+    """
+    file = open(csvFile)
+    table = csv.reader(file, delimiter=sep)
+    table = list(table)
+    file.close()
+    return table
+
+
+def strToInt(listOfLists):
+    for list in range(len(listOfLists)):
+        for element in range(len(listOfLists[list])):
+            listOfLists[list][element] = int(listOfLists[list][element])
+    return listOfLists
 
 
 ############################ Lanes Functions ###########################
@@ -331,6 +355,201 @@ def singleLaneRight(XYZ, blocks=standard_modern_lane_composition):
                     housesCoordinates.append((xyz[0], xyz[1], xyz[2]))
 
 
+def railway(XYZ, blocks=standard_modern_lane_composition):
+
+    width = 9
+    distance_from_edge = 7
+
+    railway = maths.curveSurface(
+        np.array(XYZ),
+        width,
+        resolution=0,
+        pixelPerfect=False,
+        factor=1,
+        start=0,
+        returnLine=False,
+    )
+
+    txt = open("coordinatesResult-1.txt", "w+")
+    l = 0
+    for lane in railway:
+        if (lane == 0 or lane == -0) and l == 0:
+            j = -1
+
+            for xyz in railway[lane]:
+                j += 1
+                block = "stone"
+                main.setBlock(
+                    block,
+                    xyz,
+                )
+
+                if j % 2 == 0:
+                    pos = "//pos1"
+                else:
+                    pos = "//pos2"
+
+                txt.write(
+                    "/tp Xeon0X "
+                    + str(xyz[0])
+                    + " "
+                    + str(xyz[1])
+                    + " "
+                    + str(xyz[2])
+                    + "\n"
+                    + pos
+                    + "\n"
+                    + str("")
+                )
+
+                if j >= 1:
+                    txt.write("//line " + str("251:10") + "\n")
+            l = 1
+        else:
+            l = 0
+
+    txt.close()
+
+    txt = open("coordinatesResult1.txt", "w+")
+    for lane in railway:
+        if lane == distance_from_edge or lane == -distance_from_edge:
+            j = -1
+            k = 0
+
+            for xyz in railway[lane]:
+                j += 1
+                block = "red_wool"
+                main.setBlock(
+                    block,
+                    xyz,
+                )
+
+                if j % 2 == 0:
+                    pos = "//pos1"
+                    line1 = xyz
+                else:
+                    pos = "//pos2"
+                    line2 = xyz
+
+                txt.write(
+                    "/tp Xeon0X "
+                    + str(xyz[0])
+                    + " "
+                    + str(xyz[1])
+                    + " "
+                    + str(xyz[2])
+                    + "\n"
+                    + pos
+                    + "\n"
+                )
+
+                if j >= 1:
+                    txt.write("//line " + str("251:14") + "\n")
+                    # points = maths.line(line1, line2, pixelPerfect=True)
+                    # for point in points:
+                    #     k += 1
+                    #     if k == 1:
+                    #         main.setBlock(
+                    #             "red_concrete",
+                    #             point,
+                    #         )
+                    #         pos1 = point
+                    #     if k == 2:
+                    #         main.setBlock(
+                    #             "orange_concrete",
+                    #             point,
+                    #         )
+                    #     if k == 3:
+                    #         main.setBlock(
+                    #             "yellow_concrete",
+                    #             point,
+                    #         )
+                    #     if k == 4:
+                    #         k = 1
+                    #         main.setLine(
+                    #             "purple_concrete",
+                    #             pos1,
+                    #             point,
+                    #             pixelPerfect=True,
+                    #         )
+                    #         #print(pos1, point)
+                    #         #print(maths.perpendicular(3, pos1, point))
+                    #         #pos1 = point
+
+    txt.close()
+
+    txt = open("coordinatesResult2.txt", "w+")
+    for lane in railway:
+        if lane == width - 1 or lane == -width + 1:
+            j = -1
+
+            for xyz in railway[lane]:
+                j += 1
+                block = "pink_wool"
+                main.setBlock(
+                    block,
+                    xyz,
+                )
+
+                if j % 2 == 0:
+                    pos = "//pos1"
+                else:
+                    pos = "//pos2"
+
+                txt.write(
+                    "/tp Xeon0X "
+                    + str(xyz[0])
+                    + " "
+                    + str(xyz[1])
+                    + " "
+                    + str(xyz[2])
+                    + "\n"
+                    + pos
+                    + "\n"
+                )
+
+                if j >= 1:
+                    txt.write("//line " + str("251:11") + "\n")
+
+    txt.close()
+
+    # 2
+    # for lane in railway:
+    #     for i in range(1, len(railway[lane])):
+    #         print(railway)
+
+    #         xy = maths.perpendicular(
+    #             5,
+    #             (railway[lane][i][0], railway[lane][i][2]),
+    #             (railway[lane][i - 1][0], railway[lane][i - 1][2]),
+    #         )
+    #         main.setBlock(
+    #             "light_blue_wool",
+    #             (xy[0][0], railway[lane][i][1], xy[0][1]),
+    #         )
+    #         main.setBlock(
+    #             "pink_wool", (xy[1][0], railway[lane][i][1], xy[1][1])
+    #         )
+
+    # 1
+    # line = []
+    # for lane in railway:
+    #     for i in range(1, len(railway[lane])):
+    #         line.extend(maths.line(railway[lane][i - 1], railway[lane][i]))
+
+    # for i in range(2, len(line)):
+    #     print(i, i % 3)
+    #     if i % 3 == 0:
+    #         print("eee")
+    #         xy = maths.perpendicular(
+    #             5,
+    #             (line[i][0], line[i][2]),
+    #             (line[i - 1][0], line[i - 1][2]),
+    #         )
+    #         main.setBlock("blue_wool", (xy[0][0], line[i][1], xy[0][1]))
+    #         main.setBlock("red_wool", (xy[1][0], line[i][1], xy[1][1]))
+
+
 ############################ Roads Generator ###########################
 
 
@@ -537,6 +756,13 @@ standard_modern_lane_agencement = {
 }
 
 
+railway_agencement = {
+    "lanes": {
+        1: {"type": railway, "centerDistance": 0},
+    },
+}
+
+
 standard_modern_lanes_agencement = {
     "mainRoads": {
         0: {
@@ -572,7 +798,7 @@ standard_modern_lanes_agencement = {
     },
 }
 
-autoMode = 1
+autoMode = 0
 if __name__ == "__main__":
     if autoMode == 1:
         debug = False
@@ -704,25 +930,38 @@ if __name__ == "__main__":
             if base != None:
                 # print(pos, "pos1")
                 pos1 = (
-                    pos[0] - random.randint(3, 6),
+                    pos[0] - random.randint(6, 19),
                     base[1],
-                    pos[2] - random.randint(3, 6),
+                    pos[2] - random.randint(6, 19),
                 )
                 pos2 = (
-                    pos[0] + random.randint(3, 6),
+                    pos[0] + random.randint(6, 19),
                     base[1],
-                    pos[2] + random.randint(3, 6),
+                    pos[2] + random.randint(6, 19),
                 )
+                # pos3 = (
+                #     pos1[0],
+                #     base[1],
+                #     pos2[2],
+                # )
+                # pos4 = (
+                #     pos2[0],
+                #     base[1],
+                #     pos1[2],
+                # )
+
                 pos3 = (
-                    pos1[0],
+                    pos[0] + random.randint(3, 9),
                     base[1],
-                    pos2[2],
+                    pos[2] - random.randint(3, 9),
                 )
+
                 pos4 = (
-                    pos2[0],
+                    pos[0] - random.randint(3, 9),
                     base[1],
-                    pos1[2],
+                    pos[2] + random.randint(3, 9),
                 )
+
                 # print(pos1, pos2, pos3, pos4, "pos")
                 Ypos1 = map.findGround(area[0], pos1)
                 Ypos2 = map.findGround(area[0], pos2)
@@ -776,15 +1015,35 @@ if __name__ == "__main__":
 
                         door = ["south", "north", "east", "west"]
                         cb = random.randint(0, 3)
-                        schematic.house(
-                            pos1,
-                            pos2,
-                            door[cb],
-                            random.randint(0, 1),
-                            min(
-                                Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]
+                        # schematic.house(
+                        #     pos1,
+                        #     pos2,
+                        #     door[cb],
+                        #     random.randint(0, 1),
+                        #     min(
+                        #         Ypos1[1], Ypos2[1], base[1], Ypos3[1], Ypos4[1]
+                        #     ),
+                        # )
+
+                        import builds
+
+                        builds.middleResidentialTower(
+                            (
+                                (pos1[0], pos1[2]),
+                                (pos3[0], pos3[2]),
+                                (pos2[0], pos2[2]),
+                                (pos4[0], pos4[2]),
+                            ),
+                            (),
+                            (
+                                int(Ypos1[1]),
+                                (
+                                    int(Ypos1[1])
+                                    + random.randint(20, (255 - int(Ypos1[1])))
+                                ),
                             ),
                         )
+
                         accepted.append(
                             (
                                 pos1[0],
@@ -803,12 +1062,34 @@ if __name__ == "__main__":
                             )
                         )
 
-    # if autoMode == 0:
-    #     road = RoadCurve(
-    #         standard_modern_lane_agencement,
-    #         [(791, 51, -1588), (751, 51, -1628)],
-    #     )
-    #     road.setLanes()
-    #     print("ok")
+    if autoMode == 0:
+        coordinates = strToInt(csvToList("coordinates.csv", ";"))
+        road = RoadCurve(railway_agencement, coordinates)
+        road.setLanes()
+        result = road.getLanes()
 
-    # print("Done")
+        txt = open("coordinatesResultMid.txt", "w+")
+
+        for __, i in enumerate(result):
+            for j in range(len(result[i])):
+                coordinate = ""
+                coordinate += (
+                    str(result[i][j][0])
+                    + " "
+                    + str(int(result[i][j][1]) + 1)
+                    + " "
+                    + str(result[i][j][2])
+                )
+                if j % 2 == 0:
+                    pos = "//pos1"
+                else:
+                    pos = "//pos2"
+
+                txt.write("/tp Xeon0X " + str(coordinate) + "\n" + pos + "\n")
+
+                if j >= 1:
+                    txt.write("//line " + str(1) + "\n")
+
+        txt.close()
+
+    print("Done")
