@@ -6,11 +6,12 @@ USE_BATCHING = False
 
 
 def setBlock(block, xyz):
-    x, y, z = xyz
-    if USE_BATCHING:
-        minecraft.placeBlockBatched(x, y, z, block, 100)
-    else:
-        minecraft.setBlock(x, y, z, block)
+    if block != "void":
+        x, y, z = xyz
+        if USE_BATCHING:
+            minecraft.placeBlockBatched(x, y, z, block, 100)
+        else:
+            minecraft.setBlock(x, y, z, block)
 
 
 def getBlock(xyz):

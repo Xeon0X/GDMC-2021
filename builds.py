@@ -16,7 +16,9 @@ residential_tower_materials = {
         1: {"white_concrete": 1},
         2: {"light_gray_concrete": 1},
     },
-    "glass": {0: {"black_stained_glass_pane": 1}}, # Not correct structure, "0:" should be removed
+    "glass": {
+        0: {"black_stained_glass_pane": 1}
+    },  # Not correct structure, "0:" should be removed
     "vertical_lines": {0: {"black_stained_glass_pane": 1}},
     "stairs": {0: {"stone": 3, "andesite": 1}},
 }
@@ -30,13 +32,13 @@ def setPattern(pat, xyz):
 
 
 examplePattern = {
-    0:{0: {"block": "white_concrete", "args": {}}},
-    1:{},
-    2:{},
-    3:{},
-    4:{},
-    5:{},
-    6:{},
+    0: {0: {"block": "white_concrete", "args": {}}},
+    1: {},
+    2: {},
+    3: {},
+    4: {},
+    5: {},
+    6: {},
 }
 
 
@@ -76,7 +78,10 @@ def middleResidentialTower(
         stage = 0
         for y in range(height[0], height[1]):
             stage += 1
-            line = maths.line((corners[facade][0], y, corners[facade][1]), (corners[next][0], y, corners[next][1]))
+            line = maths.line(
+                (corners[facade][0], y, corners[facade][1]),
+                (corners[next][0], y, corners[next][1]),
+            )
 
             pat = 0
             n = 0
@@ -91,20 +96,44 @@ def middleResidentialTower(
 
                 if stage % 7 == 0 and n != 1:
                     main.setBlock("light_gray_concrete", line[i])
-                    main.setBlock("light_gray_concrete", (line[i][0], int(line[i][1])-1, line[i][2]))
+                    main.setBlock(
+                        "light_gray_concrete",
+                        (line[i][0], int(line[i][1]) - 1, line[i][2]),
+                    )
 
                 if n == 1:
                     main.setBlock("white_concrete", line[i])
-                    
-                    if (line[i][0] != corners[facade][0] and line[i][2] != corners[facade][1]) and (line[i][0] != corners[next][0] and line[i][2] != corners[next][1]):
-                        xz = maths.perpendicular(3, (line[i][0], line[i][2]), (corners[facade][0], corners[facade][1]))
+
+                    if (
+                        line[i][0] != corners[facade][0]
+                        and line[i][2] != corners[facade][1]
+                    ) and (
+                        line[i][0] != corners[next][0]
+                        and line[i][2] != corners[next][1]
+                    ):
+                        xz = maths.perpendicular(
+                            3,
+                            (line[i][0], line[i][2]),
+                            (corners[facade][0], corners[facade][1]),
+                        )
                         print((xz[0][0], line[i][1], xz[0][1]))
-                        main.setBlock("white_concrete", (xz[0][0], line[i][1], xz[0][1]))
-                        main.setBlock("white_concrete", (xz[1][0], line[i][1], xz[1][1]))
+                        main.setBlock(
+                            "white_concrete", (xz[0][0], line[i][1], xz[0][1])
+                        )
+                        main.setBlock(
+                            "white_concrete", (xz[1][0], line[i][1], xz[1][1])
+                        )
 
                 if n == 4:
-                    xz = maths.perpendicular(3, (line[i][0], line[i][2]), (corners[facade][0], corners[facade][1]))
-                    main.setBlock("black_stained_glass_pane", (xz[0][0], line[i][1], xz[0][1]))
+                    xz = maths.perpendicular(
+                        3,
+                        (line[i][0], line[i][2]),
+                        (corners[facade][0], corners[facade][1]),
+                    )
+                    main.setBlock(
+                        "black_stained_glass_pane",
+                        (xz[0][0], line[i][1], xz[0][1]),
+                    )
 
 
 def middleResidentialTower1(
@@ -118,7 +147,10 @@ def middleResidentialTower1(
         stage = 0
         for y in range(height[0], height[1]):
             stage += 1
-            line = maths.line((corners[facade][0], y, corners[facade][1]), (corners[next][0], y, corners[next][1]))
+            line = maths.line(
+                (corners[facade][0], y, corners[facade][1]),
+                (corners[next][0], y, corners[next][1]),
+            )
 
             pat = 0
             n = 0
@@ -133,24 +165,52 @@ def middleResidentialTower1(
 
                 if stage % 7 == 0 and n != 1:
                     main.setBlock("light_gray_concrete", line[i])
-                    main.setBlock("light_gray_concrete", (line[i][0], int(line[i][1])-1, line[i][2]))
+                    main.setBlock(
+                        "light_gray_concrete",
+                        (line[i][0], int(line[i][1]) - 1, line[i][2]),
+                    )
 
                 if n == 1:
                     main.setBlock("white_concrete", line[i])
-                    
-                    if (line[i][0] != corners[facade][0] and line[i][2] != corners[facade][1]) and (line[i][0] != corners[next][0] and line[i][2] != corners[next][1]):
-                        xz = maths.perpendicular(3, (line[i][0], line[i][2]), (corners[facade][0], corners[facade][1]))
+
+                    if (
+                        line[i][0] != corners[facade][0]
+                        and line[i][2] != corners[facade][1]
+                    ) and (
+                        line[i][0] != corners[next][0]
+                        and line[i][2] != corners[next][1]
+                    ):
+                        xz = maths.perpendicular(
+                            3,
+                            (line[i][0], line[i][2]),
+                            (corners[facade][0], corners[facade][1]),
+                        )
                         print((xz[0][0], line[i][1], xz[0][1]))
-                        main.setBlock("white_concrete", (xz[0][0], line[i][1], xz[0][1]))
-                        main.setBlock("white_concrete", (xz[1][0], line[i][1], xz[1][1]))
+                        main.setBlock(
+                            "white_concrete", (xz[0][0], line[i][1], xz[0][1])
+                        )
+                        main.setBlock(
+                            "white_concrete", (xz[1][0], line[i][1], xz[1][1])
+                        )
 
                 if n == 4:
-                    xz = maths.perpendicular(3, (line[i][0], line[i][2]), (corners[facade][0], corners[facade][1]))
-                    main.setBlock("black_stained_glass_pane", (xz[0][0], line[i][1], xz[0][1]))
+                    xz = maths.perpendicular(
+                        3,
+                        (line[i][0], line[i][2]),
+                        (corners[facade][0], corners[facade][1]),
+                    )
+                    main.setBlock(
+                        "black_stained_glass_pane",
+                        (xz[0][0], line[i][1], xz[0][1]),
+                    )
 
 
 def stairsResidentialTower(
-    corners, connectedAreas, height, blocks=residential_tower_materials, exit="north"
+    corners,
+    connectedAreas,
+    height,
+    blocks=residential_tower_materials,
+    exit="north",
 ):
     # Generate the stairs here.
     pass
@@ -244,7 +304,11 @@ towerData_example = {
 if __name__ == "__main__":
     # tower = Tower(towerData_example)
     middleResidentialTower1(
-    ((-703, -201), (-696, -181), (-716, -166), (-730, -174)), (), (71, 71+80), blocks=residential_tower_materials)
+        ((-703, -201), (-696, -181), (-716, -166), (-730, -174)),
+        (),
+        (71, 71 + 80),
+        blocks=residential_tower_materials,
+    )
 
 """
 Inputs simple building:
@@ -267,7 +331,7 @@ TODO: Find how to detect intersection between many polygons in 2d.
 TODO: Divide spaces, create ways.
 
 Procedural Gen:
-    Create boxes and set it the best way possible. Use presets of type and matrials that go well together and that correspond to the city blocks. Sizes of boxes also depends of it.
+    Create boxes and set it the best way possible. Use presets of type and materials that go well together and that correspond to the city blocks. Sizes of boxes also depends of it.
 
 TODO: "cleanLine" like for angles. Draw a line, count the number of blocks. For 1 block for example, draw a line from 0 to 1 meters, and only place the first block that is not on the origin. 
 """
