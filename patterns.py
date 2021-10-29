@@ -364,6 +364,133 @@ def balcony(XYZ, stages):
         )
 
 
+def verticalLineFilled(XYZ, stage):
+    wall = {
+        "air": 5,
+        "polished_andesite_stairs[facing=south,half=top]": 1,
+        "cyan_terracotta": 1,
+        "polished_andesite_stairs[facing=south,half=bottom]": 1,
+    }
+
+    regularPattern(
+        add_to_tuple(XYZ, 0, 0, 0),
+        6 * stage,
+        1,
+        "north",
+        "vertical",
+        wall,
+    )
+
+    wall = {
+        "andesite_wall": 4,
+        "andesite": 4,
+    }
+
+    regularPattern(
+        add_to_tuple(XYZ, 0, 0, 1),
+        6 * stage,
+        1,
+        "north",
+        "vertical",
+        wall,
+    )
+
+    wall = {
+        "cyan_terracotta": 1,
+        "void": 3,
+    }
+
+    regularPattern(
+        add_to_tuple(XYZ, 0, 0, 0),
+        6 * stage,
+        6,
+        "south",
+        "horizontal",
+        wall,
+    )
+
+
+def wallWithWindows(XYZ, stages):
+
+    for stage in range(stages):
+        wall = {
+            "light_gray_concrete": 5,
+            "andesite": 1,
+            "stone": 1,
+        }
+
+        randomPattern(
+            add_to_tuple(XYZ, 0, 6 * stage, 0),
+            6,
+            2,
+            "south",
+            "all",
+            wall,
+        )
+
+        window = {
+            "air": 1,
+            "iron_trapdoor[open=true, facing=east]": 1,
+            "air": 1,
+        }
+
+        regularPattern(
+            add_to_tuple(XYZ, 0, 1 + 6 * stage, 0),
+            2,
+            1,
+            "south",
+            "horizontal",
+            window,
+        )
+
+        window = {
+            "black_stained_glass": 1,
+        }
+
+        regularPattern(
+            add_to_tuple(XYZ, 0, 1 + 6 * stage, 1),
+            2,
+            1,
+            "south",
+            "horizontal",
+            window,
+        )
+
+
+def skyscraper1(XYZ, stages):
+    for stage in range(stages):
+
+        window = {
+            "black_stained_glass": 3,
+            "white_stained_glass": 3,
+        }
+
+        regularPattern(
+            add_to_tuple(XYZ, 0, 6 * stage, 1),
+            6,
+            1,
+            "south",
+            "vertical",
+            window,
+        )
+
+        pillar = {
+            "void": 2,
+            "smooth_sandstone": 1,
+        }
+
+        regularPattern(
+            add_to_tuple(XYZ, 0, 6 * stage, -1),
+            6,
+            3,
+            "south",
+            "horizontal",
+            pillar,
+        )
+
+
 if __name__ == "__main__":
 
-    balcony([(-473, 63, 169), (-530, 63, 155)], 8)
+    #  balcony([(-473, 63, 169), (-530, 63, 155)], 8)
+    # wallWithWindows([(-538, 62, 160), (-561, 62, 158)], 10)
+    skyscraper1([(-564, 62, 165), (-592, 62, 156)], 30)
