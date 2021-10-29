@@ -86,12 +86,6 @@ façade.
 ########################## Arguments Presets ###########################
 
 
-simpleWindowPattern1 = {
-    "windowSize": (2, 3),
-    "windowSpacingSide": 1,
-    "windowSpacingTopBot": 1,
-}
-
 # A list for different values depending on the floor? No, stage height
 # are equal, because to complicated. Instead, divide the pattern
 # vertically, with different settings.
@@ -139,6 +133,25 @@ simpleWindowPattern1 = {
 
 
 def randomPattern(XYZ, height, width, orientation, randomType, blocks):
+    """
+    A construction function that generates continuous lines of random
+    blocks.
+
+    Args:
+        XYZ (list of tuples): List of coordinates in 3D. Must define
+        a line that does not change direction and has a regular course.
+        height (int): A positive integer representing the height, the y
+        axis.
+        width (int): A positive integer representing the width, the x or
+        z direction depending on the orientation.
+        orientation (str): "north", "south", "east", "west", where the
+        side of the line is oriented.
+        randomType (str): "all" for no pattern, "vertical" to have the
+        same blocks on the same y coordinate, creating a vertical
+        pattern. "horizontal instead.
+        blocks (dict): A dictionary with blocks as keys and weight in
+        random choices as values.
+    """
     line = combineLines(XYZ, pixelPerfect=True)
 
     x, z = getOrientation(orientation)
@@ -186,9 +199,26 @@ def randomPattern(XYZ, height, width, orientation, randomType, blocks):
 
 
 def regularPattern(XYZ, height, width, orientation, patternType, blocks):
+    """
+    A construction function that generates a pattern.
+
+    Args:
+        XYZ (list of tuples): List of coordinates in 3D. Must define
+        a line that does not change direction and has a regular course.
+        height (int): A positive integer representing the height, the y
+        axis.
+        width (int): A positive integer representing the width, the x or
+        z direction depending on the orientation.
+        orientation (str): "north", "south", "east", "west", where the
+        side of the line is oriented.
+        patternType (str): "vertical" to have the pattern applied on the
+        same y coordinate, creating a vertical pattern. "horizontal
+        instead.
+        blocks (dict): A dictionary with blocks as keys and the number of
+        times they appear as values.
+    """
     line = combineLines(XYZ, pixelPerfect=True)
     pattern = dict_to_list(blocks)
-    # Here the values are used as the number of times the block appears.
 
     x, z = getOrientation(orientation)
     yC = 0
@@ -271,172 +301,69 @@ Patterns are repeated in one direction only. Sure?
 """
 
 
-def simpleWindowPattern(XYZ, height, args, blocks=None):
-    """
-    Generate a simple window pattern.
+def balcony(XYZ, stages):
 
-    Args:
-        XYZ (list): List of tuple, the xyz coordinates.
-        args (dict): All the arguments, specific to this pattern.
-        blocks (dict): Blocks palette, defined in Materials Presets.
+    for stage in range(stages):
 
-    Example:
-        simpleWindowPattern([(x, y, z), (x, y, z), (x, y, z)],
-        {"windowSize": (xSize, zSize), "windowSpace": (botSpace, topSpace,
-        betweenSpace)}, {"structure": {[...]}, "glass":{[...]}})
-    """
-    lines = []
-    for i in range(len(XYZ) - 1):
-        line = maths.line(XYZ[i], XYZ[i + 1], pixelPerfect=True)
-        lines.extend(line)  # To be cleaned
+        pillars = {
+            "blackstone_wall": 1,
+            "air": 5,
+        }
 
-    windowArea = [
-        (args["windowSpacingSide"], args["windowSpacingTopBot"]),
-        (
-            args["windowSpacingSide"] + args["windowSize"][0],
-            args["windowSpacingTopBot"] + args["windowSize"][1],
-        ),
-    ]
-    xPattern = -1
-    yPattern = -1
-    print(lines)
-    for x in range(len(lines)):
-        xPattern += 1
-        if xPattern >= (
-            2 * int(args["windowSpacingSide"] + args["windowSize"][0])
-        ):
-            xPattern = 0
-        for y in range(height):
-            yPattern += 1
-            if yPattern >= (
-                2 * int(args["windowSpacingTopBot"] + args["windowSize"][1])
-            ):
-                yPattern = 0
-            if (
-                windowArea[0][0] <= xPattern < windowArea[1][0]
-                and windowArea[0][1] <= yPattern < windowArea[1][1]
-            ):
-                main.setBlock(
-                    "white_concrete",
-                    (lines[x][0], lines[x][1] + y, lines[x][2]),
-                )
+        regularPattern(
+            add_to_tuple(XYZ, 0, 6 * stage, 0),
+            4,
+            1,
+            "west",
+            "horizontal",
+            pillars,
+        )
 
+        wall = {
+            "red_concrete": 2,
+            "red_terracotta": 1,
+            "pink_terracotta": 1,
+        }
 
-def towerBalcony(XYZ, height, orientation=None, args=None, blocks=None):
-    """
-    [summary]
+        randomPattern(
+            add_to_tuple(XYZ, 0, -2 + 6 * stage, -1),
+            3,
+            1,
+            "north",
+            "all",
+            wall,
+        )
 
-    Args:
-        XYZ (List of lists): [description]
-        height (int): [la hauteur ?]
-        orientation ([type]): [north south east west]
-        args ([type]): [to be defined]
-        blocks ([type]): [description]
-    """
+        ground = {
+            "andesite": 4,
+            "stone": 2,
+            "polished_andesite": 1,
+        }
 
-    lines = []
-    for i in range(len(XYZ) - 1):
-        line = maths.line(XYZ[i], XYZ[i + 1], pixelPerfect=True)
-        lines.extend(line)  # To be cleaned
+        randomPattern(
+            add_to_tuple(XYZ, 0, -2 + 6 * stage, 0),
+            2,
+            4,
+            "south",
+            "all",
+            ground,
+        )
 
-    for x in range(len(lines)):
-        if x % 2 == 0:
-            main.setBlock("white_concrete", lines[x])
-        else:
-            main.setBlock("black_concrete", lines[x])
+        glass = {
+            "black_stained_glass": 2,
+            "gray_stained_glass": 1,
+        }
 
-
-class Patterns:
-    def __init__(self, patternData, XYZ):
-        self.patternData = patternData
-        self.XYZ = XYZ
+        randomPattern(
+            add_to_tuple(XYZ, 0, 6 * stage, 3),
+            4,
+            1,
+            "south",
+            "horizontal",
+            glass,
+        )
 
 
 if __name__ == "__main__":
-    # simpleWindowPattern(
-    #     [(-440, 64, 190), (-469, 69, 204), (-483, 71, 199)],
-    #     4,
-    #     simpleWindowPattern1,
-    # )
-
-    # towerBalcony(
-    #     [(-422, 62 + 5, 158), (-455, 66 + 5, 141), (-485, 64 + 5, 164)], 5
-    # )
-
-    pillars = {
-        "blackstone_wall": 1,
-        "air": 5,
-    }
-
-    # randomPattern(
-    #     [(-399, 66, 180), (-429, 72, 120), (-449, 69, 138)],
-    #     4,
-    #     5,
-    #     "north",
-    #     "horizontal",
-    #     blocks,
-    # )
-
-    def balcony(XYZ, stages):
-
-        for stage in range(stages):
-
-            pillars = {
-                "blackstone_wall": 1,
-                "air": 5,
-            }
-
-            regularPattern(
-                add_to_tuple(XYZ, 0, 6 * stage, 0),
-                4,
-                1,
-                "west",
-                "horizontal",
-                pillars,
-            )
-
-            wall = {
-                "red_concrete": 2,
-                "red_terracotta": 1,
-                "pink_terracotta": 1,
-            }
-
-            randomPattern(
-                add_to_tuple(XYZ, 0, -2 + 6 * stage, -1),
-                3,
-                1,
-                "north",
-                "all",
-                wall,
-            )
-
-            ground = {
-                "andesite": 4,
-                "stone": 2,
-                "polished_andesite": 1,
-            }
-
-            randomPattern(
-                add_to_tuple(XYZ, 0, -2 + 6 * stage, 0),
-                2,
-                4,
-                "south",
-                "all",
-                ground,
-            )
-
-            glass = {
-                "black_stained_glass": 2,
-                "gray_stained_glass": 1,
-            }
-
-            randomPattern(
-                add_to_tuple(XYZ, 0, 6 * stage, 3),
-                4,
-                1,
-                "south",
-                "horizontal",
-                glass,
-            )
 
     balcony([(-473, 63, 169), (-530, 63, 155)], 8)
